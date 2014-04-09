@@ -1,0 +1,15 @@
+CLOBBER
+
+Clobber is an attempt to clone an obscure Windows game called Slay.
+
+Completed:
+
+Basic gui
+Basic mouse input
+Map generation
+
+Next steps:
+
+Turns
+Troops
+Merging and splitting village regions
