@@ -133,7 +133,6 @@ function mapObj(size, fill) {
 					continue;
 				} else {
 					hexCoord = this.sqToHex(x, y);
-					$("#output").append(x + ", " + y + " > " + hexCoord[0] + ", " + hexCoord[1] + "; ");
 					tile.draw(ctx, this.cells[x][y].entity, this.cells[x][y].player, hexCoord[0], hexCoord[1]);
 				}
 			}
