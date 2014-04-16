@@ -7,10 +7,14 @@ Completed:
 
 Basic gui
 Basic mouse input
-Map generation
+Map generation (new map generated each game)
+Turns (end turn by clicking the colored circle next to "Turn")
+Troops (can be purchased, can move and attack)
+Merging and splitting regions (based on troop attacks)
 
 Next steps:
 
-Turns
-Troops
-Merging and splitting village regions
+Troop maintainance costs
+Troop starvation
+Troop upgrade
+Trees?
