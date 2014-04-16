@@ -1,3 +1,4 @@
+// map is a global object, mapObj() should only be used to create var map
 function mapObj(size, fill) {
 	this.size = size;
 	this.fill = fill;
@@ -13,6 +14,7 @@ function mapObj(size, fill) {
 	this.draw = draw;
 	this.sqToHex = sqToHex;
 
+	// if given coord lies inside the playable map area, return true, otherwise false
 	function inBounds(x, y) {
 		if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.cells[x][y]) {
 			return true;
@@ -21,6 +23,7 @@ function mapObj(size, fill) {
 		}
 	}
 
+	// create a two-dimentional array and fill playable areas with cell objects
 	function build() {
 		this.cells = new Array(this.size);
 		for (var i = 0; i < this.size; i++) {
@@ -40,6 +43,7 @@ function mapObj(size, fill) {
 		}
 	}
 
+	// assign cells to players
 	function claim() {
 		// x and y values to attempt to fill in map, starts in center
 		var xTest = Math.floor(this.size/2);
@@ -83,6 +87,7 @@ function mapObj(size, fill) {
 		}
 	}
 
+	// group cells into regions
 	function regions() {
 		var master;
 		var search;
@@ -94,6 +99,7 @@ function mapObj(size, fill) {
 			master = this.island[i];
 			if (!master.region && !master.isolated()) {
 				master.entity = new region();
+				master.entity.bank = 10;
 				master.region = master.entity;
 				core.players[master.player.id].regions.push(master.region);
 				master.region.capital = master;
@@ -120,6 +126,7 @@ function mapObj(size, fill) {
 		}
 	}
 
+	// draw the map
 	function draw() {
 		for (var y = 0; y < this.size+2; y++) {
 			for (var x = 0; x < this.size+2; x++) {
@@ -161,6 +168,7 @@ function mapObj(size, fill) {
 		}
 	}
 
+	// convert locations in map.cells array to output hexagons on the map
 	function sqToHex(x, y) {
 		var result = [];
 		y = (Math.floor(this.size/2)*.5) + (y+1) - (x*.5);

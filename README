@@ -9,12 +9,12 @@ Basic gui
 Basic mouse input
 Map generation (new map generated each game)
 Turns (end turn by clicking the colored circle next to "Turn")
-Troops (can be purchased, can move and attack)
+Troops (can be purchased, can move and attack, can be upgraded)
 Merging and splitting regions (based on troop attacks)
 
 Next steps:
 
 Troop maintainance costs
 Troop starvation
-Troop upgrade
+Computer opponents
 Trees?

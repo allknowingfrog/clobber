@@ -1,3 +1,5 @@
+/* all functions and variables belong to one of the following global objects */
+
 // (number of players)
 var core = new coreObj(6);
 
@@ -34,6 +36,7 @@ $(document).ready(function() {
 
 	canvas.style = "background-color:black";
 
+	// convert mouse clicks to canvas coords and call input function
 	canvas.onclick = function(e) {
 		var rect = canvas.getBoundingClientRect();
 		var x = e.clientX - rect.left;
@@ -44,6 +47,7 @@ $(document).ready(function() {
 	ctx.font = core.fontSize + "px Arial";
 	ctx.fillStyle = "white";
 
+	// load sprites, then start game
 	tile.img = new Image();
 	tile.img.src = "clobberTiles.png";
 	tile.img.onload=core.game();

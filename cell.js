@@ -14,6 +14,7 @@ function cell(x, y) {
 	this.attack = attack;
 	this.defend = defend;
 
+	// return a list of adjacent cells (including enemy cells, but not empty cells)
 	function findAdj() {
 		var result = [];
 		var neighbor;
@@ -32,6 +33,7 @@ function cell(x, y) {
 		return result;
 	}
 
+	// return true if test is adjacent to this cell, otherwise false
 	function isAdj(test) {
 		for (var i = 0; i < core.adj.length; i++) {
 			if (this.x + core.adj[i].x == test.x && this.y + core.adj[i].y == test.y) {
@@ -41,6 +43,7 @@ function cell(x, y) {
 		return false;
 	}
 
+	// if adjacent to at least one friendly cell, return false, otherwise true
 	function isolated() {
 		var neighbors = this.findAdj();
 		for (var i = 0; i < neighbors.length; i++) {
@@ -51,15 +54,22 @@ function cell(x, y) {
 		return true;
 	}
 
+	// add new troop or upgrade existing troop
 	function buyTroop() {
 		var troops = core.players[this.player.id].troops;
-		if (!this.entity && this.region.bank >= 10) {
-			troops.push(new troop());
-			this.entity = troops[troops.length-1];
-			this.region.bank -= 10;
+		if (this.region.bank >= 10) {
+			if (!this.entity) {
+				troops.push(new troop());
+				this.entity = troops[troops.length-1];
+				this.region.bank -= 10;
+			} else if (this.entity.id == "troop" && this.entity.strength < 4) {
+				this.entity.strength++;
+				this.region.bank -= 10;
+			}
 		}
 	}
 
+	// add tower
 	function buyTower() {
 		if (!this.entity && this.region.bank >= 15) {
 			this.entity = new tower();
@@ -67,29 +77,62 @@ function cell(x, y) {
 		}
 	}
 
+	// attempt to move troop from this cell to cell d
 	function attack(d) {
+		// if troop has not move this turn
 		if (this.entity.ready) {
+			// if d is empty and part of the same region, free move to new cell
 			if (!d.entity && d.region == this.region) {
 				d.entity = this.entity;
 				this.entity = null;
+			// if d is adjacent to this region, and has a lower defense than this troop strength
 			} else if (this.region.adj(d) && d.defend() < this.entity.strength) {
+				// this region will need to be updated after d is captured
 				var dReg = d.region;
-				d.player = this.player;
-				d.region = this.region;
-				this.region.cells.push(d);
+
+				// if d is the capital of a region with 3 or more cells, create a new region
+				if (d.entity && d.entity.id == "region") {
+					if (d.region.cells.length < 3) {
+						dReg = null;
+					} else {
+						// create a new region in the first empty cell
+						var cells = dReg.cells.splice();
+						var test;
+						for (var i = 0; i < cells.length; i++) {
+							test = cells[i];
+							if (test.entity) {
+								continue;
+							} else {
+								test.entity = new region();
+								test.entity.cells = cells.splice();
+								test.player.regions.push(test.entity);
+								break;
+							}
+						}
+						// set dReg to this new region
+						dReg = test.entity;
+					}
+				}
+
+				this.region.addCell(d);
+
+				// move troop to new cell
 				d.entity = this.entity;
 				d.entity.ready = false;
 				this.entity = null;
+
+				// if d was a capital with fewer than 3 cells, dReg will be null
 				if (dReg) {
 					dReg.update();
 				}
+
+				// check if attack has connected friendly cells or regions and absorb them
 				var neighbors = d.findAdj();
 				for (var i = 0; i < neighbors.length; i++) {
 					var test = neighbors[i];
 					if (test.player == this.player) {
 						if (!test.region) {
-							test.region = this.region;
-							this.region.cells.push(test);
+							this.region.addCell(test);
 						} else if (test.region != this.region) {
 							this.region.absorb(test.region);
 						}
@@ -100,6 +143,7 @@ function cell(x, y) {
 		map.selected = null;
 	}
 
+	// check strength of this and adjacent cells, return highest value
 	function defend() {
 		var neighbors = this.findAdj();
 		var defense = 0;
