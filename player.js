@@ -1,6 +1,7 @@
 function player() {
 	this.regions = [];
 	this.troops = [];
+	this.id;
 
 	this.update = update;
 	function update() {

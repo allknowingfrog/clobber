@@ -34,6 +34,7 @@ function mapObj(size, fill) {
 				} else {
 					// x coord, y coord
 					this.cells[x][y] = new cell(x, y);
+					this.cells[x][y].player = core.players[0];
 				}
 			}
 		}
@@ -59,8 +60,8 @@ function mapObj(size, fill) {
 			xTest += direction.x;
 			yTest += direction.y;
 			// if in-bounds and cell available: claim, add to island, decrease toFill and move to next player
-			if (this.inBounds(xTest, yTest) && this.cells[xTest][yTest].player == 0) {
-				this.cells[xTest][yTest].player = active;
+			if (this.inBounds(xTest, yTest) && this.cells[xTest][yTest].player.id == 0) {
+				this.cells[xTest][yTest].player = core.players[active];
 				this.island.push(this.cells[xTest][yTest]);
 				toFill--;
 				if (nextPlayer) {
@@ -94,7 +95,7 @@ function mapObj(size, fill) {
 			if (!master.region && !master.isolated()) {
 				master.entity = new region();
 				master.region = master.entity;
-				core.players[master.player].regions.push(master.region);
+				core.players[master.player.id].regions.push(master.region);
 				master.region.capital = master;
 				master.region.cells.push(master);
 
@@ -149,7 +150,7 @@ function mapObj(size, fill) {
 								break;
 						}
 					}
-				tile.draw(sprite, this.cells[x][y].player, hexCoord[0], hexCoord[1]);
+				tile.draw(sprite, this.cells[x][y].player.id, hexCoord[0], hexCoord[1]);
 				}
 			}
 		}

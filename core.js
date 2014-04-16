@@ -42,9 +42,9 @@ function coreObj(pCount) {
 			var test = map.cells[x][y];
 			if (map.selected && map.selected.entity && map.selected.entity.id == "troop") {
 				map.selected.attack(test);
-			} else if (test.player == this.active) {
+			} else if (test.player.id == this.active) {
 				map.selected = map.cells[x][y];
-			} else if (!test || test.player == 0) {
+			} else if (!test || test.player.id == 0) {
 				map.selected = null;
 			}
 		} else if (x >= output.left * tile.w && x < (output.left + 1) * tile.w && y >= output.top * tile.w && y < (output.top + 1) * tile.h) {

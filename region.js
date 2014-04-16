@@ -43,7 +43,7 @@ function region() {
 			if (!master.region && !master.isolated()) {
 				master.entity = new region();
 				master.region = master.entity;
-				core.players[master.player].regions.push(master.region);
+				core.players[master.player.id].regions.push(master.region);
 				master.region.capital = master;
 				master.region.cells.push(master);
 				master.addConnected();

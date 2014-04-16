@@ -16,6 +16,7 @@ var tile = new tileObj(32, 36);
 
 for (var i = 0; i <= core.pCount; i++) {
 	core.players[i] = new player();
+	core.players[i].id = i;
 }
 
 map.cellCount = (map.size * map.size) - (2 * (((map.size-1)/2) * ((((map.size-1)/2)+1)/2)));

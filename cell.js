@@ -1,7 +1,7 @@
 function cell(x, y) {
 	this.x = x;
 	this.y = y;
-	this.player = 0;
+	this.player;
 	this.entity = 0;
 	this.region = null;
 	this.troop = null;
@@ -52,7 +52,7 @@ function cell(x, y) {
 	}
 
 	function buyTroop() {
-		var troops = core.players[this.player].troops;
+		var troops = core.players[this.player.id].troops;
 		if (!this.entity && this.region.bank >= 10) {
 			troops.push(new troop());
 			this.entity = troops[troops.length-1];
