@@ -1,3 +1,6 @@
 function troop() {
-	this.level = 1;
+	this.id = "troop";
+	this.strength = 1;
+	this.alive = true;
+	this.ready = true;
 }

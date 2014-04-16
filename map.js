@@ -1,10 +1,10 @@
 function mapObj(size, fill) {
 	this.size = size;
 	this.fill = fill;
-	this.cells = null;
+	this.cells;
 	this.cellCount = 0;
 	this.island = [];
-	this.selected = -1;
+	this.selected = null;
 
 	this.inBounds = inBounds;
 	this.build = build;
@@ -14,7 +14,7 @@ function mapObj(size, fill) {
 	this.sqToHex = sqToHex;
 
 	function inBounds(x, y) {
-		if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.cells[x][y] != -1) {
+		if (x >= 0 && x < this.size && y >= 0 && y < this.size && this.cells[x][y]) {
 			return true;
 		} else {
 			return false;
@@ -30,7 +30,7 @@ function mapObj(size, fill) {
 		for (var y = 0; y < this.size; y++) {
 			for (var x = 0; x < this.size; x++) {
 				if (Math.abs(x-y) > this.size/2) {
-					this.cells[x][y] = -1;
+					this.cells[x][y] = null;
 				} else {
 					// x coord, y coord
 					this.cells[x][y] = new cell(x, y);
@@ -39,7 +39,7 @@ function mapObj(size, fill) {
 		}
 	}
 
-	function claim(core) {
+	function claim() {
 		// x and y values to attempt to fill in map, starts in center
 		var xTest = Math.floor(this.size/2);
 		var yTest = Math.floor(this.size/2);
@@ -82,7 +82,7 @@ function mapObj(size, fill) {
 		}
 	}
 
-	function regions(core) {
+	function regions() {
 		var master;
 		var search;
 		var run;
@@ -91,9 +91,9 @@ function mapObj(size, fill) {
 		var connected = [];
 		for (var i = 0; i < this.island.length; i++) {
 			master = this.island[i];
-			if (master.region == -1 && !master.isolated(this, core.adj)) {
-				master.entity = 5;
-				master.region = new region();
+			if (!master.region && !master.isolated()) {
+				master.entity = new region();
+				master.region = master.entity;
 				core.players[master.player].regions.push(master.region);
 				master.region.capital = master;
 				master.region.cells.push(master);
@@ -101,10 +101,10 @@ function mapObj(size, fill) {
 				search = master;
 				run = true;
 				while (run) {
-					adj = search.findAdj(this, core.adj);
+					adj = search.findAdj();
 					for (var n = 0; n < adj.length; n++) {
 						test = adj[n];
-						if (test.player == master.player && test.region == -1) {
+						if (test.player == master.player && !test.region) {
 							test.region = master.region;
 							master.region.cells.push(test);
 							connected.push(test);
@@ -119,28 +119,44 @@ function mapObj(size, fill) {
 		}
 	}
 
-	function draw(ctx, tile) {
+	function draw() {
 		for (var y = 0; y < this.size+2; y++) {
 			for (var x = 0; x < this.size+2; x++) {
-				tile.draw(ctx, 0, 0, x, y);
+				tile.draw(0, 0, x, y);
 			}
 		}
 
 		var hexCoord;
+		var sprite;
 		for (var y = 0; y < this.size; y++) {
 			for (var x = 0; x < this.size; x++) {
-				if (this.cells[x][y] == -1) {
+				if (!this.cells[x][y]) {
 					continue;
 				} else {
 					hexCoord = this.sqToHex(x, y);
-					tile.draw(ctx, this.cells[x][y].entity, this.cells[x][y].player, hexCoord[0], hexCoord[1]);
+					if (!this.cells[x][y].entity) {
+						sprite = 0;
+					} else {
+						switch (this.cells[x][y].entity.id) {
+							case "troop":
+								sprite = this.cells[x][y].entity.strength;
+								break;
+							case "region":
+								sprite = 5;
+								break;
+							case "tower":
+								sprite = 6;
+								break;
+						}
+					}
+				tile.draw(sprite, this.cells[x][y].player, hexCoord[0], hexCoord[1]);
 				}
 			}
 		}
 
-		if (this.selected != -1) {
+		if (this.selected) {
 			var hexCoord = this.sqToHex(this.selected.x, this.selected.y);
-			tile.draw(ctx, 1, 0, hexCoord[0], hexCoord[1]);
+			tile.draw(1, 0, hexCoord[0], hexCoord[1]);
 		}
 	}
 
