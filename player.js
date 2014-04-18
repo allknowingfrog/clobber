@@ -13,9 +13,10 @@ function player() {
 				this.regions.splice(i, 1);
 			}
 		}
-		// collect income
+		// collect income, pay maintenance
 		for (var i = 0; i < this.regions.length; i++) {
 			this.regions[i].tax();
+			this.regions[i].spend();
 		}
 		// remove dead troops
 		for (var i = this.troops.length-1; i >= 0; i--) {

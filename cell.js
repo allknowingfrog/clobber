@@ -106,11 +106,10 @@ function cell(x, y) {
 								test.entity = new region();
 								test.entity.cells = cells.splice();
 								test.player.regions.push(test.entity);
+								dReg = test.entity;
 								break;
 							}
 						}
-						// set dReg to this new region
-						dReg = test.entity;
 					}
 				}
 

@@ -7,6 +7,8 @@ function region() {
 	this.troops = [];
 
 	this.tax = tax;
+	this.spend = spend;
+	this.starve = starve;
 	this.adj = adj;
 	this.update = update;
 	this.absorb = absorb;
@@ -16,6 +18,45 @@ function region() {
 	// collect income from each cell in region
 	function tax() {
 		this.bank += this.cells.length;
+	}
+
+	function spend() {
+		var cell;
+		for (var i = 0; i < this.cells.length; i++) {
+			cell = this.cells[i];
+			if (cell.entity && cell.entity.id == "troop") {
+				switch (cell.entity.strength) {
+					case 1:
+						this.bank -= 2;
+						break;
+					case 2:
+						this.bank -= 6;
+						break;
+					case 3:
+						this.bank -= 18;
+						break;
+					case 4:
+						this.bank -= 54;
+						break;
+				}
+				if (this.bank < 0) {
+					this.bank = 0;
+					this.starve();
+					return;
+				}
+			}
+		}
+	}
+
+	function starve() {
+		var cell;
+		for (var i = 0; i < this.cells.length; i++) {
+			cell = this.cells[i];
+			if (cell.entity && cell.entity.id == "troop") {
+				cell.entity.alive = false;
+				cell.entity = null;
+			}
+		}
 	}
 
 	// return true if passed cell is adjacent to any cell in this region
