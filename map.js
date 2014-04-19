@@ -136,28 +136,48 @@ function mapObj(size, fill) {
 
 		var hexCoord;
 		var sprite;
+		var highlight;
+		var test;
 		for (var y = 0; y < this.size; y++) {
 			for (var x = 0; x < this.size; x++) {
 				if (!this.cells[x][y]) {
 					continue;
 				} else {
+					highlight = null;
 					hexCoord = this.sqToHex(x, y);
-					if (!this.cells[x][y].entity) {
+					test = this.cells[x][y];
+					if (!test.entity) {
 						sprite = 0;
 					} else {
-						switch (this.cells[x][y].entity.id) {
+						switch (test.entity.id) {
 							case "troop":
-								sprite = this.cells[x][y].entity.strength;
+								sprite = test.entity.strength;
+								if (test.player.id == core.active && test.entity.ready == true) {
+									highlight = "troop";
+								}
 								break;
 							case "region":
 								sprite = 5;
+								if (test.player.id == core.active && test.entity.bank >= 10) {
+									highlight = "region";
+								}
 								break;
 							case "tower":
 								sprite = 6;
 								break;
 						}
 					}
-				tile.draw(sprite, this.cells[x][y].player.id, hexCoord[0], hexCoord[1]);
+					tile.draw(sprite, test.player.id, hexCoord[0], hexCoord[1]);
+					switch (highlight) {
+						case null:
+							break;
+						case "troop":
+							tile.draw(2, 0, hexCoord[0], hexCoord[1]);
+							break;
+						case "region":
+							tile.draw(3, 0, hexCoord[0], hexCoord[1]);
+							break;
+					}
 				}
 			}
 		}

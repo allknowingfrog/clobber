@@ -79,40 +79,31 @@ function cell(x, y) {
 
 	// attempt to move troop from this cell to cell d
 	function attack(d) {
-		// if troop has not move this turn
-		if (this.entity.ready) {
-			// if d is empty and part of the same region, free move to new cell
-			if (!d.entity && d.region == this.region) {
-				d.entity = this.entity;
-				this.entity = null;
+		// if d isn't this cell and troop has not moved this turn
+		if (d != this && this.entity.ready) {
+			// if d is part of the same region
+			if (d.region == this.region) {
+				// if d is empty, free move
+				if (!d.entity) {
+					d.entity = this.entity;
+					this.entity = null;
+				// if d is also a troop, attempt to combine
+				} else if (d.entity.id == "troop" && d.entity.strength + this.entity.strength <= 4) {
+					d.entity.strength += this.entity.strength;
+					this.entity.alive = false;
+					this.entity = null;
+				}
 			// if d is adjacent to this region, and has a lower defense than this troop strength
 			} else if (this.region.adj(d) && d.defend() < this.entity.strength) {
-				// this region will need to be updated after d is captured
-				var dReg = d.region;
+				// store region to update later
+				var dRegion = d.region;
 
-				// if d is the capital of a region with 3 or more cells, create a new region
+				// if d was the capital, choose a new capital for the region
 				if (d.entity && d.entity.id == "region") {
-					if (d.region.cells.length < 3) {
-						dReg = null;
-					} else {
-						// create a new region in the first empty cell
-						var cells = dReg.cells.splice();
-						var test;
-						for (var i = 0; i < cells.length; i++) {
-							test = cells[i];
-							if (test.entity) {
-								continue;
-							} else {
-								test.entity = new region();
-								test.entity.cells = cells.splice();
-								test.player.regions.push(test.entity);
-								dReg = test.entity;
-								break;
-							}
-						}
-					}
+					dRegion = d.region.moveCapital();
 				}
 
+				// capture cell
 				this.region.addCell(d);
 
 				// move troop to new cell
@@ -120,9 +111,9 @@ function cell(x, y) {
 				d.entity.ready = false;
 				this.entity = null;
 
-				// if d was a capital with fewer than 3 cells, dReg will be null
-				if (dReg) {
-					dReg.update();
+				// if d had no region, dRegion will be null
+				if (dRegion) {
+					dRegion.update();
 				}
 
 				// check if attack has connected friendly cells or regions and absorb them

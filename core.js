@@ -48,7 +48,7 @@ function coreObj(pCount) {
 			/*if (test.region) {
 				$("#output").append(test.region.capital.x + ", " + test.region.capital.y + "; ");
 			}*/
-			if (map.selected && map.selected.entity && map.selected.entity.id == "troop") {
+			if (map.selected && map.selected.entity && map.selected.entity.id == "troop" && test.player.id != 0) {
 				map.selected.attack(test);
 			} else if (test.player.id == this.active) {
 				map.selected = map.cells[x][y];

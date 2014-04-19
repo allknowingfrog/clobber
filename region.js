@@ -10,6 +10,7 @@ function region() {
 	this.spend = spend;
 	this.starve = starve;
 	this.adj = adj;
+	this.moveCapital = moveCapital;
 	this.update = update;
 	this.absorb = absorb;
 	this.addConnected = addConnected;
@@ -55,6 +56,7 @@ function region() {
 			if (cell.entity && cell.entity.id == "troop") {
 				cell.entity.alive = false;
 				cell.entity = null;
+				$("#output").append("starvation<br />");
 			}
 		}
 	}
@@ -68,6 +70,21 @@ function region() {
 			}
 		}
 		return false;
+	}
+
+	// move capital (old one captured)
+	function moveCapital() {
+		var test;
+		for (var i = 0; i < this.cells.length; i++) {
+			test = this.cells[i];
+			if (!test.entity && test != this.capital) {
+				test.entity = new region();
+				test.entity.capital = test;
+				test.entity.cells = this.cells.slice();
+				test.player.regions.push(test.entity);
+				return test.entity;
+			}
+		}
 	}
 
 	// check whether cells have been captured or severed from region, create new regions if necessary
