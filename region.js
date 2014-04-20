@@ -56,7 +56,6 @@ function region() {
 			if (cell.entity && cell.entity.id == "troop") {
 				cell.entity.alive = false;
 				cell.entity = null;
-				$("#output").append("starvation<br />");
 			}
 		}
 	}

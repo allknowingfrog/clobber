@@ -22,7 +22,6 @@ function player() {
 		for (var i = this.troops.length-1; i >= 0; i--) {
 			if (this.troops[i].alive == false) {
 				this.troops.splice(i, 1);
-				$("#output").append("removed dead troop<br />");
 			}
 		}
 		// set all troops to ready

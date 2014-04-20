@@ -1,5 +1,10 @@
 /* all functions and variables belong to one of the following global objects */
 
+// (tile width, tile height)
+var tile = new tileObj(32, 36);
+tile.img = new Image();
+tile.img.src = "clobberTiles.png";
+
 // (number of players)
 var core = new coreObj(6);
 
@@ -12,9 +17,6 @@ var output = new outputObj(12);
 var canvas;
 
 var ctx;
-
-// (tile width, tile height)
-var tile = new tileObj(32, 36);
 
 for (var i = 0; i <= core.pCount; i++) {
 	core.players[i] = new player();
@@ -47,8 +49,5 @@ $(document).ready(function() {
 	ctx.font = core.fontSize + "px Arial";
 	ctx.fillStyle = "white";
 
-	// load sprites, then start game
-	tile.img = new Image();
-	tile.img.src = "clobberTiles.png";
-	tile.img.onload=core.game();
+	core.game();
 });
