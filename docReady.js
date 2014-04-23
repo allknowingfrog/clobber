@@ -115,9 +115,9 @@ $(document).ready(function() {
 			y = Math.floor((y - ((Math.floor(map.size/2))*(tile.h/2)) + (x*(tile.h/2))) / tile.h) - 1;
 			// choose an action based on contents of selected cell and clicked cell
 			var test = map.cells[x][y];
-			if (test.region) {
+			/*if (test.region) {
 				$("#output").text(test.region.num);
-			}
+			}*/
 			if (map.selected && map.selected.entity && map.selected.entity.id == "troop" && test.player.id != 0) {
 				map.selected.moveTroop(test);
 			} else if (test.player.id == active) {
