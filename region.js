@@ -97,14 +97,21 @@ function region(num, cell, bank) {
 			// if target was the capital, choose a new capital for the region
 			if (target.entity.id == "village") {
 				var test;
+				var newCap;
 				for (var i = 0; i < this.cells.length; i++) {
 					test = this.cells[i];
 					if (!test.entity) {
-						test.entity = new village(this, 0);
-						this.capital = test;
+						newCap = test;
 						break;
+					} else if (test.entity.id == "tower") {
+						newCap = test;
+					} else if (!newCap || newCap.entity.id != "tower" && test.entity.strength < newCap.entity.strength) {
+						newCap = test;
 					}
 				}
+				newCap.entity = new village(this, 0);
+				this.capital = newCap;
+
 			// if target was a troop, set alive to false
 			} else if (target.entity.id == "troop") {
 				target.entity.alive = false;
@@ -143,7 +150,12 @@ function region(num, cell, bank) {
 		var master;
 		for (var i = 0; i < test.length; i++) {
 			master = test[i];
-			if (!master.region && !master.isolated()) {
+			if (master.isolated()) {
+				if (master.entity && master.entity.id == "troop") {
+					master.entity.alive = false;
+					master.entity = null;
+				}
+			} else if (!master.region) {
 				master.player.regions.push(new region(regNum++, master, 0));
 				master.region.addConnected();
 			}

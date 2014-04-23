@@ -1,4 +1,5 @@
 var	pCount = 6;
+var humans = 1;
 var	players = [];
 var	adjacent = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}, {x: 1, y: 1}, {x: -1, y: -1}];
 var active;
@@ -8,7 +9,11 @@ var	fontSize = 24;
 var regNum = 0;
 
 for (var i = 0; i <= pCount; i++) {
-	players[i] = new player(i, false);
+	if (i <= humans) {
+		players[i] = new player(i, false);
+	} else {
+		players[i] = new player(i, true);
+	}
 }
 
 // return a random integer from zero to ints-1
@@ -16,8 +21,8 @@ function randNum(ints) {
 	return Math.floor((Math.random()*ints));
 }
 
-// advance counters to next player and call startTurn()
-function endTurn() {
+// move to next player, various updates, execute computer turns
+function newTurn() {
 	map.selected = null;
 	activeIt++;
 	if (activeIt > pCount) {
@@ -34,8 +39,46 @@ function endTurn() {
 			}
 		}
 		activeIt--;
-		endTurn();
+		newTurn();
 	}
+	draw();
+	if (active.computer) {
+		computerTurn();
+	}
+}
+
+function computerTurn() {
+	var regions = active.regions;
+	var cells;
+	var troops;
+	var village;
+	var test;
+	var adj;
+	var target;
+	for (var i = 0; i < regions.length; i++) {
+		cells = regions[i].cells;
+		troops = regions[i].troops;
+		village = regions[i].capital.entity;
+		for (var n = 0; n < cells.length; n++) {
+			test = cells[n];
+			if (village.bank >= 10) {
+				if (!test.entity) {
+					test.buyTroop();
+				}
+			} else {
+				break;
+			}
+		}
+		/*for (var n = 0; n < troops.length; n++) {
+			for (var z = 0; z < cells.length; z++) {
+				adj = cells[z].findAdj();
+				for (var a = 0; a < adj.length; a++) {
+					target = adj[a];
+					if (target.player != this.player) {
+
+		}*/
+	}
+	newTurn();
 }
 
 var tile = {

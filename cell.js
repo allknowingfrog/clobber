@@ -75,6 +75,7 @@ function cell(x, y) {
 		}
 	}
 
+	// return true if move successful, otherwis false
 	function moveTroop(target) {
 		// if target isn't this cell and troop has not moved this turn...
 		if (target != this && this.entity.ready) {
@@ -85,6 +86,7 @@ function cell(x, y) {
 					target.entity = this.entity;
 					this.entity = null;
 					map.selected = null;
+					return true;
 				// ...and target is also a troop, attempt to combine
 				} else if (target.entity.id == "troop" && target.entity.strength + this.entity.strength <= 4) {
 					target.entity.strength += this.entity.strength;
@@ -95,16 +97,22 @@ function cell(x, y) {
 					} else {
 						map.selected = null;
 					}
+					return true;
+				} else {
+					return false;
 				}
 			// ...and target is adjacent to this region, and has a lower defense than this troop strength
 			} else if (this.region.adj(target) && target.defend() < this.entity.strength) {
 				this.attack(target);
 				map.selected = null;
+				return true;
 			} else {
 				map.selected = null;
+				return false;
 			}
 		} else {
 			map.selected = null;
+			return false;
 		}
 	}
 

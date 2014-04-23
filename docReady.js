@@ -126,7 +126,7 @@ $(document).ready(function() {
 			}
 		// if click wasn't on the map, check output buttons
 		} else if (x >= output.left * tile.w && x < (output.left + 1) * tile.w && y >= output.top * tile.w && y < (output.top + 1) * tile.h) {
-			endTurn();
+			newTurn();
 		} else if (x >= (output.left + 1) * tile.w && x < (output.left + 2) * tile.w && y >= (output.top + 3) * tile.w && y < (output.top + 4) * tile.h) {
 			map.selected.buyTroop();
 		} else if (x >= (output.left + 2) * tile.w && x < (output.left + 3) * tile.w && y >= (output.top + 3) * tile.w && y < (output.top + 4) * tile.h) {
@@ -135,8 +135,6 @@ $(document).ready(function() {
 		draw();
 	};
 
-	activeIt = 1;
-	active = players[activeIt];
-	draw();
-	active.update();
+	activeIt = 0;
+	newTurn();
 });
