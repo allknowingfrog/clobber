@@ -13,6 +13,7 @@ function region(num, cell, bank) {
 
 	this.tax = tax;
 	this.spend = spend;
+	this.updateTroops = updateTroops;
 	this.starve = starve;
 	this.adj = adj;
 	this.dropCell = dropCell;
@@ -50,6 +51,19 @@ function region(num, cell, bank) {
 					return;
 				}
 			}
+		}
+	}
+
+	function updateTroops() {
+		// remove dead troops
+		for (var i = this.troops.length-1; i >= 0; i--) {
+			if (this.troops[i].alive == false) {
+				this.troops.splice(i, 1);
+			}
+		}
+		// set all troops to ready
+		for (var i = 0; i < this.troops.length; i++) {
+			this.troops[i].ready = true;
 		}
 	}
 
@@ -107,6 +121,7 @@ function region(num, cell, bank) {
 		// reassign region cells (some may have been severed)
 		var test = this.cells.slice();
 		this.cells = [this.capital];
+		this.troops = [];
 
 		for (var i = 0; i < test.length; i++) {
 			test[i].region = null;
@@ -149,6 +164,9 @@ function region(num, cell, bank) {
 					test.region = this;
 					this.cells.push(test);
 					connected.push(test);
+					if (test.entity && test.entity.id == "troop") {
+						this.troops.push(test.entity);
+					}
 				}
 			}
 
@@ -162,6 +180,7 @@ function region(num, cell, bank) {
 	// absorb target friendly region into this region
 	function absorb(target) {
 		this.capital.entity.bank += target.capital.entity.bank;
+		this.troops = this.troops.concat(target.troops);
 		for (var i = 0; i < target.cells.length; i++) {
 			target.cells[i].region = this;
 			this.cells.push(target.cells[i]);

@@ -58,6 +58,7 @@ function cell(x, y) {
 			if (!this.entity) {
 				troops.push(new troop());
 				this.entity = troops[troops.length-1];
+				this.region.troops.push(this.entity);
 				village.bank -= 10;
 			} else if (this.entity.id == "troop" && this.entity.strength < 4) {
 				this.entity.strength++;
@@ -83,18 +84,28 @@ function cell(x, y) {
 				if (!target.entity) {
 					target.entity = this.entity;
 					this.entity = null;
+					map.selected = null;
 				// ...and target is also a troop, attempt to combine
 				} else if (target.entity.id == "troop" && target.entity.strength + this.entity.strength <= 4) {
 					target.entity.strength += this.entity.strength;
 					this.entity.alive = false;
 					this.entity = null;
+					if (target.entity.ready) {
+						map.selected = target;
+					} else {
+						map.selected = null;
+					}
 				}
 			// ...and target is adjacent to this region, and has a lower defense than this troop strength
 			} else if (this.region.adj(target) && target.defend() < this.entity.strength) {
 				this.attack(target);
+				map.selected = null;
+			} else {
+				map.selected = null;
 			}
+		} else {
+			map.selected = null;
 		}
-		map.selected = null;
 	}
 
 	function attack(d) {

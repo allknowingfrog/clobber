@@ -3,7 +3,7 @@ CLOBBER
 
 Clobber is an attempt to clone an obscure Windows game called Slay.
 
-Clobber is approaching a playable state. No computer opponents are available, but it is possible to play local hotseat games against human opponents. Clobber is hosted at https://allknowingfrog.github.io/clobber
+Clobber is approaching a playable state. No computer opponents are available, but it is possible to play local hotseat games against human opponents. Clobber is hosted at https://allknowingfrog.github.io/clobber.
 
 Completed:
 
@@ -14,8 +14,11 @@ Turns (end turn by clicking the colored circle next to "Turn")
 Troops (purchase, upgrade, move and attack, maintenance costs, starvation)
 Indicators for active troops and regions with available troops
 Merging and splitting regions (based on troop attacks)
+Player elimination
 
 Next steps:
 
 Computer opponents
+Options gui
+Victory screen (play again option)
 Trees?

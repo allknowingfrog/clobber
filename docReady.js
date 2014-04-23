@@ -42,13 +42,13 @@ $(document).ready(function() {
 						switch (test.entity.id) {
 							case "troop":
 								sprite = test.entity.strength;
-								if (test.player.id == active && test.entity.ready == true) {
+								if (test.player == active && test.entity.ready == true) {
 									highlight = "troop";
 								}
 								break;
 							case "village":
 								sprite = 5;
-								if (test.player.id == active && test.entity.bank >= 10) {
+								if (test.player == active && test.entity.bank >= 10) {
 									highlight = "village";
 								}
 								break;
@@ -80,19 +80,18 @@ $(document).ready(function() {
 
 	output.draw = function() {
 		ctx.clearRect(this.left * tile.w, 0, canvas.width, canvas.height);
-		tile.draw(0, active, this.left, this.top);
-		var turn = Math.floor(round/pCount) + 1;
-		ctx.fillText("Turn: " + turn, (this.left + 1) * tile.w, this.top * tile.h + fontSize);
+		tile.draw(0, active.id, this.left, this.top);
+		ctx.fillText("Turn: " + gameTurn, (this.left + 1) * tile.w, this.top * tile.h + fontSize);
 		// if a region is selected, draw value of bank
 		if (map.selected && map.selected.region) {
 			var bank = map.selected.region.capital.entity.bank;
-			tile.draw(5, active, this.left, this.top + 1);
+			tile.draw(5, active.id, this.left, this.top + 1);
 			ctx.fillText("Bank: " + bank, (this.left + 1) * tile.w, (this.top + 1) * tile.h + fontSize);
 			// if bank is high enough, draw troop and tower icons
 			if (bank >= 10) {
-				tile.draw(1, active, this.left + 1, this.top + 3);
+				tile.draw(1, active.id, this.left + 1, this.top + 3);
 				if (bank >= 15) {
-					tile.draw(6, active, this.left + 2, this.top + 3);
+					tile.draw(6, active.id, this.left + 2, this.top + 3);
 				}
 			}
 		}
@@ -120,7 +119,7 @@ $(document).ready(function() {
 			}*/
 			if (map.selected && map.selected.entity && map.selected.entity.id == "troop" && test.player.id != 0) {
 				map.selected.moveTroop(test);
-			} else if (test.player.id == active) {
+			} else if (test.player == active) {
 				map.selected = map.cells[x][y];
 			} else if (!test || test.player.id == 0) {
 				map.selected = null;
@@ -136,6 +135,8 @@ $(document).ready(function() {
 		draw();
 	};
 
+	activeIt = 1;
+	active = players[activeIt];
 	draw();
-	players[active].update();
+	active.update();
 });

@@ -1,8 +1,9 @@
 var	pCount = 6;
 var	players = [];
 var	adjacent = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}, {x: 1, y: 1}, {x: -1, y: -1}];
-var	active = 1;
-var	round = 0;
+var active;
+var	activeIt = 1;
+var	gameTurn = 1;
 var	fontSize = 24;
 var regNum = 0;
 
@@ -18,13 +19,24 @@ function randNum(ints) {
 
 // advance counters to next player and call startTurn()
 function endTurn() {
-	active++;
-	if (active > pCount) {
-		active = 1;
-	}
-	players[active].update();
 	map.selected = null;
-	round++;
+	activeIt++;
+	if (activeIt > pCount) {
+		gameTurn++;
+		activeIt = 1;
+	}
+	active = players[activeIt];
+	active.update();
+	if (active.regions.length <= 0) {
+		for (var i = players.length-1; i >= 0; i--) {
+			if (players[i] == active) {
+				players.splice(i, 1);
+				pCount--;
+			}
+		}
+		activeIt--;
+		endTurn();
+	}
 }
 
 var tile = {
@@ -104,16 +116,16 @@ map.sqToHex = function(x, y) {
 		yTest += direction.y;
 		// if in-bounds and cell available: claim, add to island, decrease toFill and move to next player
 		if (map.inBounds(xTest, yTest) && map.cells[xTest][yTest].player.id == 0) {
-			map.cells[xTest][yTest].player = players[active];
+			map.cells[xTest][yTest].player = players[activeIt];
 			map.island.push(map.cells[xTest][yTest]);
 			toFill--;
 			if (nextPlayer) {
-				active++;
+				activeIt++;
 			} else {
 				nextPlayer = true;
 			}
-			if (active > pCount) {
-				active = 1;
+			if (activeIt > pCount) {
+				activeIt = 1;
 			}
 		}
 		// move to newly claimed cell, or to beginning of list
