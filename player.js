@@ -1,6 +1,7 @@
-function player() {
+function player(id, computer) {
+	this.id = id;
+	this.computer = computer;
 	this.regions = [];
-	this.id;
 	this.troops = [];
 
 	this.update = update;
@@ -15,9 +16,9 @@ function player() {
 		}
 		// collect income, pay maintenance
 		for (var i = 0; i < this.regions.length; i++) {
+			this.regions[i].updateTroops();
 			this.regions[i].tax();
 			this.regions[i].spend();
-			this.regions[i].updateTroops();
 		}
 		// remove dead troops
 		for (var i = this.troops.length-1; i >= 0; i--) {

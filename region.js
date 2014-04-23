@@ -11,15 +11,28 @@ function region(num, cell, bank) {
 	cell.entity = new village(this, bank);
 	this.cells.push(cell);
 
+	this.updateTroops = updateTroops;
 	this.tax = tax;
 	this.spend = spend;
-	this.updateTroops = updateTroops;
 	this.starve = starve;
 	this.adj = adj;
 	this.dropCell = dropCell;
 	this.absorb = absorb;
 	this.addConnected = addConnected;
 	this.addCell = addCell;
+
+	function updateTroops() {
+		// remove dead troops
+		for (var i = this.troops.length-1; i >= 0; i--) {
+			if (this.troops[i].alive == false) {
+				this.troops.splice(i, 1);
+			}
+		}
+		// set all troops to ready
+		for (var i = 0; i < this.troops.length; i++) {
+			this.troops[i].ready = true;
+		}
+	}
 
 	// collect income from each cell in region
 	function tax() {
@@ -42,7 +55,7 @@ function region(num, cell, bank) {
 						this.capital.entity.bank -= 18;
 						break;
 					case 4:
-						this.capital.bank.bank -= 54;
+						this.capital.entity.bank -= 54;
 						break;
 				}
 				if (this.capital.entity.bank < 0) {
@@ -51,19 +64,6 @@ function region(num, cell, bank) {
 					return;
 				}
 			}
-		}
-	}
-
-	function updateTroops() {
-		// remove dead troops
-		for (var i = this.troops.length-1; i >= 0; i--) {
-			if (this.troops[i].alive == false) {
-				this.troops.splice(i, 1);
-			}
-		}
-		// set all troops to ready
-		for (var i = 0; i < this.troops.length; i++) {
-			this.troops[i].ready = true;
 		}
 	}
 
@@ -76,6 +76,7 @@ function region(num, cell, bank) {
 				cell.entity = null;
 			}
 		}
+		this.troops = [];
 	}
 
 	// return true if passed cell is adjacent to any cell in this region

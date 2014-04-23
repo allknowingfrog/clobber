@@ -8,8 +8,7 @@ var	fontSize = 24;
 var regNum = 0;
 
 for (var i = 0; i <= pCount; i++) {
-	players[i] = new player();
-	players[i].id = i;
+	players[i] = new player(i, false);
 }
 
 // return a random integer from zero to ints-1
