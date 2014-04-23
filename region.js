@@ -1,24 +1,28 @@
-function region() {
+function region(num, cell, bank) {
 	this.id = "region";
-	this.strength = 1;
-	this.capital = null;
+	this.num = num;
+	this.alive = true;
+	this.player = cell.player;
+	this.capital = cell;
 	this.cells = [];
-	this.bank = 0;
 	this.troops = [];
+
+	cell.region = this;
+	cell.entity = new village(this, bank);
+	this.cells.push(cell);
 
 	this.tax = tax;
 	this.spend = spend;
 	this.starve = starve;
 	this.adj = adj;
-	this.moveCapital = moveCapital;
-	this.update = update;
+	this.dropCell = dropCell;
 	this.absorb = absorb;
 	this.addConnected = addConnected;
 	this.addCell = addCell;
 
 	// collect income from each cell in region
 	function tax() {
-		this.bank += this.cells.length;
+		this.capital.entity.bank += this.cells.length;
 	}
 
 	function spend() {
@@ -28,20 +32,20 @@ function region() {
 			if (cell.entity && cell.entity.id == "troop") {
 				switch (cell.entity.strength) {
 					case 1:
-						this.bank -= 2;
+						this.capital.entity.bank -= 2;
 						break;
 					case 2:
-						this.bank -= 6;
+						this.capital.entity.bank -= 6;
 						break;
 					case 3:
-						this.bank -= 18;
+						this.capital.entity.bank -= 18;
 						break;
 					case 4:
-						this.bank -= 54;
+						this.capital.bank.bank -= 54;
 						break;
 				}
-				if (this.bank < 0) {
-					this.bank = 0;
+				if (this.capital.entity.bank < 0) {
+					this.capital.entity.bank = 0;
 					this.starve();
 					return;
 				}
@@ -71,49 +75,60 @@ function region() {
 		return false;
 	}
 
-	// move capital (old one captured)
-	function moveCapital() {
-		var test;
-		for (var i = 0; i < this.cells.length; i++) {
-			test = this.cells[i];
-			if (!test.entity && test != this.capital) {
-				test.entity = new region();
-				test.entity.capital = test;
-				test.entity.cells = this.cells.slice();
-				test.player.regions.push(test.entity);
-				return test.entity;
+	function dropCell(target) {
+		target.player = 0;
+		target.region = null;
+		if (target.entity) {
+			// if target was the capital, choose a new capital for the region
+			if (target.entity.id == "village") {
+				var test;
+				for (var i = 0; i < this.cells.length; i++) {
+					test = this.cells[i];
+					if (!test.entity) {
+						test.entity = new village(this, 0);
+						this.capital = test;
+						break;
+					}
+				}
+			// if target was a troop, set alive to false
+			} else if (target.entity.id == "troop") {
+				target.entity.alive = false;
 			}
+			target.entity = null;
 		}
-	}
 
-	// check whether cells have been captured or severed from region, create new regions if necessary
-	function update() {
-		var test = this.cells.slice();
-		this.cells = [];
-		for (var i = 0; i < test.length; i++) {
-			if (test[i].player == this.capital.player) {
-				test[i].region = null;
+		// remove target from array of cells
+		for (var i = this.cells.length-1; i >= 0; i--) {
+			if (this.cells[i] == target) {
+				this.cells.splice(i, 1);
 			}
 		}
+
+		// reassign region cells (some may have been severed)
+		var test = this.cells.slice();
+		this.cells = [this.capital];
+
+		for (var i = 0; i < test.length; i++) {
+			test[i].region = null;
+		}
+
+		this.capital.region = this;
 
 		// if capital is last cell in region, destroy it, otherwise, add connected cells
 		if (this.capital.isolated()) {
 			this.capital.entity = null;
+			this.capital.region = null;
+			this.alive = false;
 		} else {
-			this.capital.region = this;
-			this.cells.push(this.capital);
 			this.addConnected();
 		}
 
 		// cells without regions in test have been severed, create new regions until each cell is assigned
+		var master;
 		for (var i = 0; i < test.length; i++) {
 			master = test[i];
 			if (!master.region && !master.isolated()) {
-				master.entity = new region();
-				master.region = master.entity;
-				master.player.regions.push(master.region);
-				master.region.capital = master;
-				master.region.cells.push(master);
+				master.player.regions.push(new region(regNum++, master, 0));
 				master.region.addConnected();
 			}
 		}
@@ -130,7 +145,7 @@ function region() {
 			adj = search.findAdj();
 			for (var i = 0; i < adj.length; i++) {
 				test = adj[i];
-				if (test.player == this.capital.player && !test.region) {
+				if (test.player == this.player && !test.region) {
 					test.region = this;
 					this.cells.push(test);
 					connected.push(test);
@@ -146,17 +161,18 @@ function region() {
 
 	// absorb target friendly region into this region
 	function absorb(target) {
-		this.bank += target.bank;
+		this.capital.entity.bank += target.capital.entity.bank;
 		for (var i = 0; i < target.cells.length; i++) {
 			target.cells[i].region = this;
 			this.cells.push(target.cells[i]);
 		}
 		target.capital.entity = null;
+		target.alive = false;
 	}
 
 	// absorb target cell into this region
 	function addCell(target) {
-		target.player = this.capital.player;
+		target.player = this.player;
 		target.region = this;
 		this.cells.push(target);
 	}

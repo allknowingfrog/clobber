@@ -9,7 +9,7 @@ function player() {
 	function update() {
 		// remove dead regions
 		for (var i = this.regions.length-1; i >= 0; i--) {
-			if (!this.regions[i]) {
+			if (this.regions[i].alive == false) {
 				this.regions.splice(i, 1);
 			}
 		}
