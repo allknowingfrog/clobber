@@ -56,9 +56,7 @@ function cell(x, y) {
 		var village = this.region.capital.entity;
 		if (village.bank >= 10) {
 			if (!this.entity) {
-				troops.push(new troop());
-				this.entity = troops[troops.length-1];
-				this.region.troops.push(this.entity);
+				troops.push(new troop(this));
 				village.bank -= 10;
 			} else if (this.entity.id == "troop" && this.entity.strength < 4) {
 				this.entity.strength++;
@@ -84,6 +82,7 @@ function cell(x, y) {
 				// ...and target is empty, free move
 				if (!target.entity) {
 					target.entity = this.entity;
+					target.entity.cell = target;
 					this.entity = null;
 					map.selected = null;
 					return true;
@@ -99,6 +98,7 @@ function cell(x, y) {
 					}
 					return true;
 				} else {
+					map.selected = null;
 					return false;
 				}
 			// ...and target is adjacent to this region, and has a lower defense than this troop strength
@@ -124,6 +124,7 @@ function cell(x, y) {
 
 		// move troop to new cell
 		d.entity = this.entity;
+		d.entity.cell = d;
 		d.entity.ready = false;
 		this.entity = null;
 

@@ -49,8 +49,8 @@ function newTurn() {
 
 function computerTurn() {
 	var regions = active.regions;
+	var troops = active.troops;
 	var cells;
-	var troops;
 	var village;
 	var test;
 	var adj;
@@ -69,14 +69,23 @@ function computerTurn() {
 				break;
 			}
 		}
-		/*for (var n = 0; n < troops.length; n++) {
+	}
+	for (var i = 0; i < troops.length; i++) {
+		test = troops[i].cell;
+		adj = test.findAdj();
+		(function(){
 			for (var z = 0; z < cells.length; z++) {
 				adj = cells[z].findAdj();
-				for (var a = 0; a < adj.length; a++) {
-					target = adj[a];
-					if (target.player != this.player) {
-
-		}*/
+				for (var n = 0; n < adj.length; n++) {
+					target = adj[n];
+					if (target.player != active.player) {
+						if (test.moveTroop(target)) {
+							return;
+						}
+					}
+				}
+			}
+		})();
 	}
 	newTurn();
 }

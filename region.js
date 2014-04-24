@@ -109,6 +109,9 @@ function region(num, cell, bank) {
 						newCap = test;
 					}
 				}
+				if (newCap.entity && newCap.entity.id == "troop") {
+					newCap.entity.alive = false;
+				}
 				newCap.entity = new village(this, 0);
 				this.capital = newCap;
 
@@ -162,7 +165,7 @@ function region(num, cell, bank) {
 		}
 	}
 
-	// find all cells connected to capital and add to region (cell.region must be cleared first)
+	// find all regionless cells connected to capital and add to region
 	function addConnected() {
 		var search = this.capital;
 		var adj = [];
