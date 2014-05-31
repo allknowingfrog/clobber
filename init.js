@@ -100,7 +100,7 @@ tile.img = new Image();
 tile.img.src = "clobberTiles.png";
 
 var map = {
-	size: 19,
+	size: 11,
 	fill: .6,
 	cells: null,
 	cellCount: 0,
