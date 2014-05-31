@@ -1,5 +1,5 @@
-var	pCount = 6;
-var humans = 1;
+var	pCount = 2;
+var humans = 2;
 var	players = [];
 var	adjacent = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}, {x: 1, y: 1}, {x: -1, y: -1}];
 var active;
@@ -49,15 +49,15 @@ function newTurn() {
 
 function computerTurn() {
 	var regions = active.regions;
-	var troops = active.troops;
+	var troops;
 	var cells;
 	var village;
 	var test;
-	var adj;
+	var neighbors;
 	var target;
 	for (var i = 0; i < regions.length; i++) {
+		// buy troops
 		cells = regions[i].cells;
-		troops = regions[i].troops;
 		village = regions[i].capital.entity;
 		for (var n = 0; n < cells.length; n++) {
 			test = cells[n];
@@ -69,23 +69,25 @@ function computerTurn() {
 				break;
 			}
 		}
-	}
-	for (var i = 0; i < troops.length; i++) {
-		test = troops[i].cell;
-		adj = test.findAdj();
-		(function(){
-			for (var z = 0; z < cells.length; z++) {
-				adj = cells[z].findAdj();
-				for (var n = 0; n < adj.length; n++) {
-					target = adj[n];
-					if (target.player != active.player) {
-						if (test.moveTroop(target)) {
-							return;
+		// move troops
+		troops = regions[i].troops;
+		for (var i = 0; i < troops.length; i++) {
+			test = troops[i].cell;
+			(function(){
+				for (var z = 0; z < cells.length; z++) {
+					neighbors = cells[z].findAdj();
+					for (var n = 0; n < neighbors.length; n++) {
+						target = neighbors[n];
+						$("#output").append(target.player.id + " " + active.id + ", ");
+						if (target.player.id != 0 && target.player != active) {
+							if (test.moveTroop(target)) {
+								return;
+							}
 						}
 					}
 				}
-			}
-		})();
+			})();
+		}
 	}
 	newTurn();
 }
@@ -98,7 +100,7 @@ tile.img = new Image();
 tile.img.src = "clobberTiles.png";
 
 var map = {
-	size: 19,
+	size: 7,
 	fill: .6,
 	cells: null,
 	cellCount: 0,
@@ -200,7 +202,7 @@ map.sqToHex = function(x, y) {
 })();
 
 var output = {
-	w: 12,
+	w: 8,
 	top: 2
 };
 output.left = map.size + 3;
