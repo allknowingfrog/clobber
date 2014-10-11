@@ -1,19 +1,26 @@
-<!DOCTYPE html>
-<head>
-	<meta charset="UTF-8" />
-	<title>Clobber</title>
-	<script src="jquery-2.1.0.min.js"></script>
-	<script src="player.js"></script>
-	<script src="cell.js"></script>
-	<script src="village.js"></script>
-	<script src="region.js"></script>
-	<script src="troop.js"></script>
-	<script src="tower.js"></script>
-	<script src="init.js"></script>
-	<script src="docReady.js"></script>
-</head>
-<body>
-	<canvas id="canvas"></canvas>
-	<div id="output"></div>
-</body>
+<!doctype html>
+<html>
+  <head>
+    <title>Clobber</title>
+  </head>
+  <body>
+    <button id='turnBtn' style='float:right;display:none;' onclick='endTurn()'>End Turn</button>
+    <canvas id='canvas'></canvas>
+    <div id='output'></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script>
+        var socket = io();
+        function endTurn() {
+            socket.emit('endTurn');
+            $('#turnBtn').hide();
+        }
+        socket.on('message', function(msg){
+            $('#output').append(msg + '<br>');
+        });
+        socket.on('beginTurn', function(){
+            $('#turnBtn').show();
+        });
+    </script>
+  </body>
 </html>

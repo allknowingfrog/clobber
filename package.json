@@ -1,0 +1,9 @@
+{
+  "name": "clobber",
+  "version": "0.0.1",
+  "description": "multiplayer Slay clone",
+  "dependencies": {
+    "express": "^4.9.5",
+    "socket.io": "^1.1.0"
+  }
+}
