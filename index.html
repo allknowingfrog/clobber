@@ -4,7 +4,10 @@
     <title>Clobber</title>
   </head>
   <body>
-    <button id='turnBtn' style='float:right;display:none;' onclick='endTurn()'>End Turn</button>
+    <div style='float:right;'>
+        <button id='turnBtn' style='display:none;' onclick='endTurn()'>End Turn</button>
+        <button id='orderBtn' style='display:none;' onclick='order()'>Order</button>
+    </div>
     <canvas id='canvas'></canvas>
     <div id='output'></div>
     <script src="/socket.io/socket.io.js"></script>
@@ -13,12 +16,23 @@
         var socket = io();
         function endTurn() {
             socket.emit('endTurn');
+            $('#orderBtn').hide();
             $('#turnBtn').hide();
+        }
+        function order() {
+            socket.emit('order', 'test');
         }
         socket.on('message', function(msg){
             $('#output').append(msg + '<br>');
         });
+        socket.on('log', function(msg){
+            console.log(msg);
+        });
         socket.on('beginTurn', function(){
+            $('#turnBtn').show();
+            $('#orderBtn').show();
+        });
+        socket.on('update', function(){
             $('#turnBtn').show();
         });
     </script>
