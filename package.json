@@ -1,0 +1,16 @@
+{
+  "name": "clobber",
+  "version": "0.0.0",
+  "description": "Multiplayer Slay Clone",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/allknowingfrog/clobber.git"
+  },
+  "author": "Jeremiah Bohling",
+  "readmeFilename": "README",
+  "dependencies": {
+    "socket.io": "~1.3.5",
+    "express": "~4.12.3"
+  }
+}
