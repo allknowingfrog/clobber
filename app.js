@@ -5,35 +5,27 @@ var io = require('socket.io').listen(server);
 var fs = require('fs');
 
 var player = require('./player.js');
-var player = require('./cell.js');
 
 //globals
-users = {};
-players = {};
+sockets = {};
+socketPlayers = {};
+nextPlayer = 0;
+nextRegion = 0;
 
-MAP_SIZE = 11;
-
-dirs = {
-    nw:   {x: -1,  y: -1},
-    n:    {x:  0,  y: -1},
-    ne:   {x:  1,  y:  0},
-    se:   {x:  1,  y:  1},
-    s:    {x:  0,  y:  1},
-    sw:   {x: -1,  y:  0},
-    here: {x:  0,  y:  0}
-};
-
-map = [];
-for(var x=0; x<MAP_SIZE; x++) {
-    map[x] = [];
-    for(var y=0; y<MAP_SIZE; y++) {
-        map[x][y] = new cell(x, y);
-    }
+PLAYER_COUNT = 4;
+players = [];
+for(var p=0; p<PLAYER_COUNT; p++) {
+    players[p] = new player(p);
 }
+
+adjacent = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}, {x: 1, y: 1}, {x: -1, y: -1}];
+
+map = {};
+require('./map.js').create(map, 11, .6, players);
 
 server.listen(3000);
 
-app.use(express.static(__dirname + '/sprites'));
+app.use(express.static(__dirname + '/public'));
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
@@ -41,21 +33,27 @@ app.get('/', function(req, res){
 
 io.sockets.on('connection', function(socket) {
     socket.on('login', function(data, callback) {
-        if(data in users) {
+        console.log('login attempt');
+        if(data in sockets) {
             callback(false);
+            console.log('login failed');
         } else if(data) {
             socket.nickname = data;
-            users[socket.nickname] = socket;
-            players[socket.nickname] = new player(socket.nickname);
+            sockets[socket.nickname] = socket;
+            socketPlayers[socket.nickname] = players[nextPlayer];
+            nextPlayer++;
             callback({
-                login: data
+                login: data,
+                map: map.cells
             });
+            console.log('login successful: '+data);
         } else {
             callback(false);
+            console.log('login failed');
         }
     });
     socket.on('move', function(data) {
-        players[socket.nickname].move(data);
+        socketPlayers[socket.nickname].move(data);
         io.sockets.emit('update'); //send map
     });
     socket.on('turn', function(data) {
@@ -63,8 +61,8 @@ io.sockets.on('connection', function(socket) {
     });
     socket.on('disconnect', function(data) {
         if(socket.nickname) {
-            delete users[socket.nickname];
-            delete players[socket.nickname];
+            delete sockets[socket.nickname];
+            socketPlayers[socket.nickname] = null;
         } else {
             return;
         }

@@ -1,19 +1,159 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-	<meta charset="UTF-8" />
-	<title>Clobber</title>
-	<script src="jquery-2.1.3.min.js"></script>
-	<script src="player.js"></script>
-	<script src="cell.js"></script>
-	<script src="village.js"></script>
-	<script src="region.js"></script>
-	<script src="troop.js"></script>
-	<script src="tower.js"></script>
-	<script src="init.js"></script>
-	<script src="docReady.js"></script>
+<title>Clobber</title>
+<meta charset="UTF-8">
+<style>
+body {
+    background: gray;
+}
+#canvas {
+    background: black;
+    float: left;
+}
+#sidebar {
+    background: white;
+    float: left;
+}
+</style>
+<script src="jquery-2.1.3.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io.connect();
+
+var canvas = {};
+var CANVAS_W;
+var CANVAS_H;
+var ctx = {};
+
+var TILE_W;
+var TILE_H;
+
+var map;
+
+var tiles = {
+    p0: new Image(),
+    p1: new Image(),
+    p2: new Image(),
+    p3: new Image(),
+    village:  new Image()
+};
+tiles.p0.src = 'green.svg';
+tiles.p1.src = 'brown.svg';
+tiles.p2.src = 'blue.svg';
+tiles.p3.src = 'red.svg';
+//tiles.village.src = 'village.svg';
+
+function init(data) {
+    map = data.map;
+
+    canvas.main = document.getElementById("canvas");
+    ctx.main = canvas.main.getContext("2d");
+    canvas.sidebar = document.getElementById("sidebar");
+    ctx.sidebar = canvas.sidebar.getContext("2d");
+
+    setCanvasWidth(localStorage.getItem("canvas-width"));
+
+    //ctx.sidebar.font = fontSize + "px Arial";
+    //ctx.sidebar.fillStyle = "white";
+
+    canvas.main.onclick = function(e) {
+        // find pixel location of click relative to canvas
+        var rect = canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+
+        // if click was on map, convert pixels to hex coords
+    }
+
+    draw();
+}
+
+function setCanvasWidth(width) {
+    CANVAS_W = width || 600;
+    localStorage.setItem('canvas-width', width);
+    TILE_W = CANVAS_W / ((.75 * map.length) + 2);
+    TILE_H = Math.sqrt(3)/2 * TILE_W;
+    CANVAS_H = TILE_H * (map.length + 1);
+
+    canvas.main.width = CANVAS_W;
+    canvas.main.height = CANVAS_H;
+    canvas.sidebar.width = TILE_W * 4;
+    canvas.sidebar.height = CANVAS_H;
+
+    return "canvas width set: " + width;
+}
+
+function draw() {
+    var xStart = (CANVAS_W / 2) - (TILE_W / 2);
+    var yStart = (CANVAS_H / 2) - (TILE_H / 2);
+    var origin = Math.floor(map.length/2);
+    var structure, tile, player, xRel, yRel, xDraw, yDraw;
+    ctx.main.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    for(var x=0; x<map.length; x++) {
+        for(var y=0; y<map.length; y++) {
+            cell = map[x][y];
+            if(cell && cell.player) {
+                tile = tiles['p' + cell.player.id];
+                xRel = x - origin;
+                yRel = y - origin;
+                xDraw = xStart + (xRel * (.75 * TILE_W));
+                yDraw = yStart + ((yRel - (xRel / 2)) * TILE_H);
+                ctx.main.drawImage(tile, xDraw, yDraw, TILE_W, TILE_H);
+                if(cell.entity) {
+                    switch(cell.entity) {
+                        case 'village':
+                            tile = tiles.village[cell.player];
+                            break;
+                    }
+                    ctx.main.drawImage(tile, xDraw, yDraw, TILE_W, TILE_H);
+                }
+            }
+        }
+    }
+}
+
+$(document).ready(function() {
+    $('#nickname').val(localStorage.getItem('login'));
+    $('#login').submit(function(e) {
+        e.preventDefault();
+        socket.emit('login', $('#nickname').val(), function(data) {
+            if(data) {
+                localStorage.setItem('login', data.login);
+                $('#loginDiv').hide();
+                $('#gameDiv').show();
+                init(data);
+            } else {
+                $('#output').html('That username is already taken! Try again.');
+            }
+        });
+        $('#nickname').val('');
+    });
+    socket.on('update', function(data) {
+        map = data.map;
+        draw();
+    });
+});
+</script>
+
 </head>
+
 <body>
-	<canvas id="canvas"></canvas>
-	<div id="output"></div>
+
+<div id="loginDiv" style="margin:50px;">
+    <form id="login">
+        <span>Enter a username:</span>
+        <input style="width:150px;" id="nickname" style="margin-left:5px;">
+        <input type="submit" value="Login">
+    </form>
+</div>
+
+<div id="gameDiv" style="width:100%;display:none;">
+    <canvas id="canvas"></canvas>
+    <canvas id="sidebar"></canvas>
+</div>
+
+<div id="output" style="width:100%;"></div>
 </body>
+
 </html>

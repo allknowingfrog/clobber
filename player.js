@@ -1,13 +1,10 @@
-function player(id, computer) {
+module.exports = function (id) {
 	this.id = id;
-	this.computer = computer;
 	this.regions = [];
 	this.troops = [];
 
-	this.update = update;
-
 	// update arrays and values for new turn
-	function update() {
+	this.update = function() {
 		// remove dead regions
 		for (var i = this.regions.length-1; i >= 0; i--) {
 			if (this.regions[i].alive == false) {
@@ -26,5 +23,5 @@ function player(id, computer) {
 				this.troops.splice(i, 1);
 			}
 		}
-	}
-}
+	};
+};
