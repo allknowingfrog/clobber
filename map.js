@@ -40,13 +40,12 @@ module.exports = {
 
             // return a list of adjacent cells (including enemy cells, but not empty cells)
             this.findAdj = function() {
-                var adjacent = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}, {x: 1, y: 1}, {x: -1, y: -1}];
+                var adj = hex.adjacent;
                 var result = [];
-                var xTest;
-                var yTest;
-                for (var i = 0; i < adjacent.length; i++) {
-                    xTest = this.x + adjacent[i].x;
-                    yTest = this.y + adjacent[i].y;
+                var xTest, yTest;
+                for(var i=0; i<adj.length; i++) {
+                    xTest = this.x + adj[i].x;
+                    yTest = this.y + adj[i].y;
                     if (map.cells[xTest] && map.cells[xTest][yTest]) {
                         result.push(map.cells[xTest][yTest]);
                     }
@@ -56,8 +55,9 @@ module.exports = {
 
             // return true if test is adjacent to this cell, otherwise false
             this.isAdj = function(test) {
-                for (var i = 0; i < adjacent.length; i++) {
-                    if (this.x + adjacent[i].x == test.x && this.y + adjacent[i].y == test.y) {
+                var adj = hex.adjacent;
+                for(var i=0; i<adj.length; i++) {
+                    if(this.x + adj[i].x == test.x && this.y + adj[i].y == test.y) {
                         return true;
                     }
                 }
@@ -67,8 +67,8 @@ module.exports = {
             // if adjacent to at least one friendly cell, return false, otherwise true
             this.isolated = function() {
                 var neighbors = this.findAdj();
-                for (var i = 0; i < neighbors.length; i++) {
-                    if (neighbors[i].player == this.player) {
+                for(var i=0; i<neighbors.length; i++) {
+                    if(neighbors[i].player == this.player) {
                         return false;
                     }
                 }
@@ -79,11 +79,11 @@ module.exports = {
             this.buyTroop = function() {
                 var troops = this.player.troops;
                 var village = this.region.capital.entity;
-                if (village.bank >= 10) {
-                    if (!this.entity) {
+                if(village.bank >= 10) {
+                    if(!this.entity) {
                         troops.push(new map.troop(this));
                         village.bank -= 10;
-                    } else if (this.entity.id == "troop" && this.entity.strength < 4) {
+                    } else if(this.entity.id == "troop" && this.entity.strength < 4) {
                         this.entity.strength++;
                         village.bank -= 10;
                     }
@@ -92,31 +92,31 @@ module.exports = {
 
             // add tower
             this.buyTower = function() {
-                if (!this.entity && this.region.capital.entity.bank >= 15) {
+                if(!this.entity && this.region.capital.entity.bank >= 15) {
                     this.entity = new map.tower();
                     this.region.capital.entity.bank -= 15;
                 }
             };
 
-            // return true if move successful, otherwis false
+            // return true if move successful, otherwise false
             this.moveTroop = function(target) {
                 // if target isn't this cell and troop has not moved this turn...
-                if (target != this && this.entity.ready) {
+                if(target != this && this.entity.ready) {
                     // ...and target is part of the same region...
-                    if (target.region == this.region) {
+                    if(target.region == this.region) {
                         // ...and target is empty, free move
-                        if (!target.entity) {
+                        if(!target.entity) {
                             target.entity = this.entity;
                             target.entity.cell = target;
                             this.entity = null;
                             map.selected = null;
                             return true;
                             // ...and target is also a troop, attempt to combine
-                        } else if (target.entity.id == "troop" && target.entity.strength + this.entity.strength <= 4) {
+                        } else if(target.entity.id == "troop" && target.entity.strength + this.entity.strength <= 4) {
                             target.entity.strength += this.entity.strength;
                             this.entity.alive = false;
                             this.entity = null;
-                            if (target.entity.ready) {
+                            if(target.entity.ready) {
                                 map.selected = target;
                             } else {
                                 map.selected = null;
@@ -127,7 +127,7 @@ module.exports = {
                             return false;
                         }
                         // ...and target is adjacent to this region, and has a lower defense than this troop strength
-                    } else if (this.region.adj(target) && target.defend() < this.entity.strength) {
+                    } else if(this.region.adj(target) && target.defend() < this.entity.strength) {
                         this.attack(target);
                         map.selected = null;
                         return true;
@@ -142,7 +142,7 @@ module.exports = {
             };
 
             this.attack = function(d) {
-                if (d.region) {
+                if(d.region) {
                     d.region.dropCell(d);
                 }
                 this.region.addCell(d);
@@ -155,12 +155,12 @@ module.exports = {
 
                 // check if attack has connected friendly cells or regions and absorb them
                 var neighbors = d.findAdj();
-                for (var i = 0; i < neighbors.length; i++) {
+                for(var i=0; i<neighbors.length; i++) {
                     var test = neighbors[i];
-                    if (test.player == this.player) {
-                        if (!test.region) {
+                    if(test.player == this.player) {
+                        if(!test.region) {
                             this.region.addCell(test);
-                        } else if (test.region != this.region) {
+                        } else if(test.region != this.region) {
                             this.region.absorb(test.region);
                         }
                     }
@@ -171,16 +171,15 @@ module.exports = {
             this.defend = function() {
                 var neighbors = this.findAdj();
                 var defense = 0;
-                var strength;
-                var test;
-                if (this.entity) {
+                var strength, test;
+                if(this.entity) {
                     defense = this.entity.strength;
                 }
-                for (var i = 0; i < neighbors.length; i++) {
+                for(var i=0; i<neighbors.length; i++) {
                     test = neighbors[i];
-                    if (test.player == this.player && test.entity) {
+                    if(test.player == this.player && test.entity) {
                         strength = test.entity.strength;
-                        if (strength > defense) {
+                        if(strength > defense) {
                             defense = strength;
                         }
                     }
@@ -204,13 +203,13 @@ module.exports = {
 
             this.updateTroops = function() {
                 // remove dead troops
-                for (var i = this.troops.length-1; i >= 0; i--) {
-                    if (this.troops[i].alive == false) {
+                for(var i=this.troops.length-1; i>=0; i--) {
+                    if(this.troops[i].alive == false) {
                         this.troops.splice(i, 1);
                     }
                 }
                 // set all troops to ready
-                for (var i = 0; i < this.troops.length; i++) {
+                for(var i=0; i<this.troops.length; i++) {
                     this.troops[i].ready = true;
                 }
             };
@@ -222,10 +221,10 @@ module.exports = {
 
             this.spend = function() {
                 var cell;
-                for (var i = 0; i < this.cells.length; i++) {
+                for(var i=0; i<this.cells.length; i++) {
                     cell = this.cells[i];
-                    if (cell.entity && cell.entity.id == "troop") {
-                        switch (cell.entity.strength) {
+                    if(cell.entity && cell.entity.id == "troop") {
+                        switch(cell.entity.strength) {
                             case 1:
                                 this.capital.entity.bank -= 2;
                                 break;
@@ -239,7 +238,7 @@ module.exports = {
                                 this.capital.entity.bank -= 54;
                                 break;
                         }
-                        if (this.capital.entity.bank < 0) {
+                        if(this.capital.entity.bank < 0) {
                             this.capital.entity.bank = 0;
                             this.starve();
                             return;
@@ -250,9 +249,9 @@ module.exports = {
 
             this.starve = function() {
                 var cell;
-                for (var i = 0; i < this.cells.length; i++) {
+                for(var i=0; i<this.cells.length; i++) {
                     cell = this.cells[i];
-                    if (cell.entity && cell.entity.id == "troop") {
+                    if(cell.entity && cell.entity.id == "troop") {
                         cell.entity.alive = false;
                         cell.entity = null;
                     }
@@ -263,8 +262,8 @@ module.exports = {
             // return true if passed cell is adjacent to any cell in this region
             this.adj = function(test) {
                 neighbors = test.findAdj();
-                for (var i = 0; i < neighbors.length; i++) {
-                    if (neighbors[i].region == this) {
+                for(var i=0; i<neighbors.length; i++) {
+                    if(neighbors[i].region == this) {
                         return true;
                     }
                 }
@@ -274,38 +273,37 @@ module.exports = {
             this.dropCell = function(target) {
                 target.player = 0;
                 target.region = null;
-                if (target.entity) {
+                if(target.entity) {
                     // if target was the capital, choose a new capital for the region
-                    if (target.entity.id == "village") {
-                        var test;
-                        var newCap;
-                        for (var i = 0; i < this.cells.length; i++) {
+                    if(target.entity.id == "village") {
+                        var test, newCap;
+                        for(var i=0; i<this.cells.length; i++) {
                             test = this.cells[i];
-                            if (!test.entity) {
+                            if(!test.entity) {
                                 newCap = test;
                                 break;
-                            } else if (test.entity.id == "tower") {
+                            } else if(test.entity.id == "tower") {
                                 newCap = test;
-                            } else if (!newCap || newCap.entity.id != "tower" && test.entity.strength < newCap.entity.strength) {
+                            } else if(!newCap || (newCap.entity.id != "tower" && test.entity.strength < newCap.entity.strength)) {
                                 newCap = test;
                             }
                         }
-                        if (newCap.entity && newCap.entity.id == "troop") {
+                        if(newCap.entity && newCap.entity.id == "troop") {
                             newCap.entity.alive = false;
                         }
                         newCap.entity = new map.village(this, 0);
                         this.capital = newCap;
 
                     // if target was a troop, set alive to false
-                    } else if (target.entity.id == "troop") {
+                    } else if(target.entity.id == "troop") {
                         target.entity.alive = false;
                     }
                     target.entity = null;
                 }
 
                 // remove target from array of cells
-                for (var i = this.cells.length-1; i >= 0; i--) {
-                    if (this.cells[i] == target) {
+                for(var i=this.cells.length-1; i>=0; i--) {
+                    if(this.cells[i] == target) {
                         this.cells.splice(i, 1);
                     }
                 }
@@ -315,14 +313,14 @@ module.exports = {
                 this.cells = [this.capital];
                 this.troops = [];
 
-                for (var i = 0; i < test.length; i++) {
+                for(var i=0; i<test.length; i++) {
                     test[i].region = null;
                 }
 
                 this.capital.region = this;
 
                 // if capital is last cell in region, destroy it, otherwise, add connected cells
-                if (this.capital.isolated()) {
+                if(this.capital.isolated()) {
                     this.capital.entity = null;
                     this.capital.region = null;
                     this.alive = false;
@@ -332,14 +330,14 @@ module.exports = {
 
                 // cells without regions in test have been severed, create new regions until each cell is assigned
                 var master;
-                for (var i = 0; i < test.length; i++) {
+                for(var i=0; i<test.length; i++) {
                     master = test[i];
-                    if (master.isolated()) {
-                        if (master.entity && master.entity.id == "troop") {
+                    if(master.isolated()) {
+                        if(master.entity && master.entity.id == "troop") {
                             master.entity.alive = false;
                             master.entity = null;
                         }
-                    } else if (!master.region) {
+                    } else if(!master.region) {
                         master.player.regions.push(new map.region(nextRegion++, master, 0));
                         master.region.addConnected();
                     }
@@ -353,21 +351,21 @@ module.exports = {
                 var connected = [];
                 var test;
                 var run = true;
-                while (run) {
+                while(run) {
                     adj = search.findAdj();
-                    for (var i = 0; i < adj.length; i++) {
+                    for(var i=0; i<adj.length; i++) {
                         test = adj[i];
-                        if (test.player == this.player && !test.region) {
+                        if(test.player == this.player && !test.region) {
                             test.region = this;
                             this.cells.push(test);
                             connected.push(test);
-                            if (test.entity && test.entity.id == "troop") {
+                            if(test.entity && test.entity.id == "troop") {
                                 this.troops.push(test.entity);
                             }
                         }
                     }
 
-                    if (connected.length == 0) {
+                    if(connected.length == 0) {
                         run = false;
                     }
                     search = connected.pop();
@@ -378,7 +376,7 @@ module.exports = {
             this.absorb = function(target) {
                 this.capital.entity.bank += target.capital.entity.bank;
                 this.troops = this.troops.concat(target.troops);
-                for (var i = 0; i < target.cells.length; i++) {
+                for(var i=0; i<target.cells.length; i++) {
                     target.cells[i].region = this;
                     this.cells.push(target.cells[i]);
                 }
@@ -418,10 +416,12 @@ module.exports = {
         };
 
         // build 2D array
-        for (var x=0; x<map.size; x++) {
+        var radius = Math.ceil(map.size/2);
+        for(var x=0; x<map.size; x++) {
             map.cells[x] = [];
-            for (var y=0; y<map.size; y++) {
-                if (Math.abs(x-y) > map.size/2) {
+            for(var y=0; y<map.size; y++) {
+                // null out corners of array to leave hexagon-shaped map
+                if(x+y < radius || x+y >= (map.size*2)-radius) {
                     map.cells[x][y] = null;
                 } else {
                     map.cells[x][y] = new map.cell(x, y);
@@ -445,7 +445,7 @@ module.exports = {
         var toFill = (map.cellCount * map.fill) - ((map.cellCount * map.fill) % (2 * players.length));
         while(toFill > 0) {
             // move in a random direction
-            direction = adjacent[Math.floor((Math.random()*adjacent.length))];
+            direction = hex.adjacent[Math.floor((Math.random()*hex.adjacent.length))];
             xTest += direction.x;
             yTest += direction.y;
             // if cell available: claim, add to island, decrease toFill and move to next player
@@ -453,13 +453,13 @@ module.exports = {
                 map.cells[xTest][yTest].player = players[pIt];
                 map.island.push(map.cells[xTest][yTest]);
                 toFill--;
-                if (nextPlayer) {
+                if(nextPlayer) {
                     pIt++;
                     nextPlayer = false;
                 } else {
                     nextPlayer = true;
                 }
-                if (pIt >= players.length) {
+                if(pIt >= players.length) {
                     pIt = 0;
                 }
             }
@@ -474,9 +474,9 @@ module.exports = {
 
         // assign cells to regions
         var test;
-        for (var i = 0; i < map.island.length; i++) {
+        for(var i=0; i<map.island.length; i++) {
             test = map.island[i];
-            if (!test.region && !test.isolated(map)) {
+            if(!test.region && !test.isolated(map)) {
                 test.player.regions.push(new map.region(nextRegion++, test, 10));
                 test.region.addConnected();
             }

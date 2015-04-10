@@ -11,6 +11,7 @@ sockets = {};
 socketPlayers = {};
 nextPlayer = 0;
 nextRegion = 0;
+hex = require('./hex.js');
 
 PLAYER_COUNT = 4;
 players = [];

@@ -108,7 +108,7 @@ function draw() {
                 xRel = x - origin;
                 yRel = y - origin;
                 xDraw = xStart + (xRel * (.75 * TILE_W));
-                yDraw = yStart + ((yRel - (xRel / 2)) * TILE_H);
+                yDraw = yStart + ((yRel + (xRel / 2)) * TILE_H);
                 ctx.main.drawImage(tile, xDraw, yDraw, TILE_W, TILE_H);
                 if(cell.entity) {
                     switch(cell.entity) {
