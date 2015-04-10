@@ -36,13 +36,17 @@ var tiles = {
     p1: new Image(),
     p2: new Image(),
     p3: new Image(),
-    village:  new Image()
+    village:  new Image(),
+    troop: new Image(),
+    tower: new Image()
 };
 tiles.p0.src = 'green.svg';
 tiles.p1.src = 'brown.svg';
 tiles.p2.src = 'blue.svg';
 tiles.p3.src = 'red.svg';
-//tiles.village.src = 'village.svg';
+tiles.village.src = 'village.svg';
+tiles.troop.src = 'troop1.svg';
+tiles.tower.src = 'tower.svg';
 
 function init(data) {
     console.log('init');
@@ -61,11 +65,14 @@ function init(data) {
 
     canvas.main.onclick = function(e) {
         // find pixel location of click relative to canvas
-        var rect = canvas.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
-
-        // if click was on map, convert pixels to hex coords
+        var rect = canvas.main.getBoundingClientRect();
+        var xClick = e.clientX - rect.left;
+        var yClick = e.clientY - rect.top;
+        var xRel = xClick - (CANVAS_W/2) + (TILE_W/2);
+        var x = Math.floor(xRel/(.75*TILE_W));
+        var yRel = yClick - (CANVAS_H/2) + (TILE_H/2) - (x * (TILE_H/2));
+        var y = Math.floor((yRel/TILE_H));
+        console.log(x + ", " + y);
     }
 
     draw();
@@ -106,7 +113,13 @@ function draw() {
                 if(cell.entity) {
                     switch(cell.entity) {
                         case 'village':
-                            tile = tiles.village[cell.player];
+                            tile = tiles.village;
+                            break;
+                        case 'troop':
+                            tile = tiles.troop;
+                            break;
+                        case 'tower':
+                            tile = tiles.tower;
                             break;
                     }
                     ctx.main.drawImage(tile, xDraw, yDraw, TILE_W, TILE_H);

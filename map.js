@@ -10,15 +10,16 @@ module.exports = {
 
         map.get = function() {
             var output = [];
-            var cell;
+            var cell, entity;
             for(var x=0; x<map.cells.length; x++) {
                 output[x] = [];
                 for(var y=0; y<map.cells[x].length; y++) {
                     cell = map.cells[x][y];
                     if(cell && cell.player) {
-                        //console.log('id: '+cell.player.id);
+                        if(cell.entity) entity = cell.entity.id;
+                        else entity = null;
                         output[x][y] = {
-                            //entity: cell.entity,
+                            entity: entity,
                             player: cell.player.id
                         };
                     } else {
@@ -34,7 +35,7 @@ module.exports = {
             this.x = x;
             this.y = y;
             this.player;
-            this.entity = 0;
+            this.entity = null;
             this.region = null;
 
             // return a list of adjacent cells (including enemy cells, but not empty cells)
@@ -400,6 +401,22 @@ module.exports = {
             this.strength = 1;
         };
 
+        map.troop = function(cell) {
+            this.id = "troop";
+            this.cell = cell;
+            this.strength = 1;
+            this.alive = true;
+            this.ready = true;
+
+            cell.entity = this;
+            cell.region.troops.push(this);
+        };
+
+        map.tower = function() {
+            this.id = "tower";
+            this.strength = 2;
+        };
+
         // build 2D array
         for (var x=0; x<map.size; x++) {
             map.cells[x] = [];
@@ -425,7 +442,7 @@ module.exports = {
         var direction;
 
         // number of cells to fill
-        var toFill = (map.cellCount * map.fill) - ((map.cellCount * map.fill) % (players.length));
+        var toFill = (map.cellCount * map.fill) - ((map.cellCount * map.fill) % (2 * players.length));
         while(toFill > 0) {
             // move in a random direction
             direction = adjacent[Math.floor((Math.random()*adjacent.length))];
