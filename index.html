@@ -45,7 +45,9 @@ tiles.p3.src = 'red.svg';
 //tiles.village.src = 'village.svg';
 
 function init(data) {
+    console.log('init');
     map = data.map;
+    console.log(JSON.stringify(data.map));
 
     canvas.main = document.getElementById("canvas");
     ctx.main = canvas.main.getContext("2d");
@@ -85,6 +87,7 @@ function setCanvasWidth(width) {
 }
 
 function draw() {
+    console.log('draw');
     var xStart = (CANVAS_W / 2) - (TILE_W / 2);
     var yStart = (CANVAS_H / 2) - (TILE_H / 2);
     var origin = Math.floor(map.length/2);
@@ -93,8 +96,8 @@ function draw() {
     for(var x=0; x<map.length; x++) {
         for(var y=0; y<map.length; y++) {
             cell = map[x][y];
-            if(cell && cell.player) {
-                tile = tiles['p' + cell.player.id];
+            if(cell) {
+                tile = tiles['p' + cell.player];
                 xRel = x - origin;
                 yRel = y - origin;
                 xDraw = xStart + (xRel * (.75 * TILE_W));

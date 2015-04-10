@@ -38,13 +38,18 @@ io.sockets.on('connection', function(socket) {
             callback(false);
             console.log('login failed');
         } else if(data) {
+            console.log(data+' available');
             socket.nickname = data;
+            console.log(data+' set as nickname');
             sockets[socket.nickname] = socket;
+            console.log('socket stored');
             socketPlayers[socket.nickname] = players[nextPlayer];
+            console.log('socket player stored');
             nextPlayer++;
+            console.log('incremented nextPlayer');
             callback({
                 login: data,
-                map: map.cells
+                map: map.get()
             });
             console.log('login successful: '+data);
         } else {
