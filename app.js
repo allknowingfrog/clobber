@@ -8,8 +8,9 @@ var player = require('./player.js');
 
 var sockets = {};
 var socketPlayers = {};
-var nextPlayer = 0;
-var PLAYER_COUNT = 4;
+var activePlayer = 0;
+var PLAYER_COUNT = 2;
+var turn = 0;
 
 var players = [];
 for(var p=0; p<PLAYER_COUNT; p++) {
@@ -45,7 +46,7 @@ io.sockets.on('connection', function(socket) {
                 map: map.get()
             });
             console.log('login successful: '+data+" is player "+socketPlayers[data].id+" again");
-        } else if(nextPlayer >= PLAYER_COUNT) {
+        } else if(turn > 0) {
             callback({
                 success: false,
                 msg: "Game is full"
@@ -54,15 +55,21 @@ io.sockets.on('connection', function(socket) {
         } else if(data) {
             socket.nickname = data;
             sockets[data] = socket;
-            socketPlayers[data] = players[nextPlayer];
+            socketPlayers[data] = players[activePlayer];
             callback({
                 success: true,
-                player: nextPlayer,
+                player: activePlayer,
                 login: data,
                 map: map.get()
             });
-            console.log('login successful: '+data+" is player "+nextPlayer);
-            nextPlayer++;
+            console.log('login successful: '+data+" is player "+activePlayer);
+            activePlayer++;
+            if(activePlayer >= PLAYER_COUNT) {
+                turn = 1;
+                activePlayer = 0;
+                update();
+                console.log('beginning game');
+            }
         } else {
             callback({
                 success: false,
@@ -73,10 +80,10 @@ io.sockets.on('connection', function(socket) {
     });
     socket.on('move', function(data) {
         socketPlayers[socket.nickname].move(data);
-        io.sockets.emit('update'); //send map
+        update();
     });
     socket.on('turn', function(data) {
-        io.sockets.emit('turn'); //next turn
+        update();
     });
     socket.on('disconnect', function(data) {
         if(socket.nickname) {
@@ -86,3 +93,11 @@ io.sockets.on('connection', function(socket) {
         }
     });
 });
+
+function update() {
+    io.sockets.emit('update', {
+        map: map.get(),
+        turn: turn,
+        activePlayer: activePlayer
+    });
+}

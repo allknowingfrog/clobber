@@ -34,6 +34,9 @@ var selected;
 
 var playerID;
 
+var turn = 0;
+var activePlayer = 0;
+
 var tiles = {
     p0: new Image(),
     p1: new Image(),
@@ -142,7 +145,8 @@ function cube_round(x, y) {
 
 //can be called from console to change view size
 function setCanvasWidth(width) {
-    CANVAS_W = width || 600;
+    if(width >= 0) CANVAS_W = width;
+    else CANVAS_W = 600;
     localStorage.setItem('canvas-width', width);
     TILE_W = CANVAS_W / ((.75 * map.length) + 2);
     TILE_H = Math.sqrt(3)/2 * TILE_W;
@@ -209,7 +213,10 @@ $(document).ready(function() {
     });
     socket.on('update', function(data) {
         map = data.map;
+        turn = data.turn;
+        activePlayer = data.activePlayer;
         draw();
+        if(playerID == activePlayer) console.log('my turn');
     });
 });
 </script>
