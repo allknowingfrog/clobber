@@ -3,22 +3,6 @@ CLOBBER
 
 Clobber is an attempt to clone an obscure Windows game called Slay.
 
-Clobber is approaching a playable state. No computer opponents are available, but it is possible to play local hotseat games against human opponents. Clobber is hosted at https://allknowingfrog.github.io/clobber.
+This began as a purely JavaScript endeavor. The legacy branch contains this inital effor, a relatively playable, local hotseat version. This is the version hosted at https://allknowingfrog.github.io/clobber.
 
-Completed:
-
-Basic gui
-Basic mouse input
-Map generation (new map generated each game)
-Turns (end turn by clicking the colored circle next to "Turn")
-Troops (purchase, upgrade, move and attack, maintenance costs, starvation)
-Indicators for active troops and regions with available troops
-Merging and splitting regions (based on troop attacks)
-Player elimination
-
-Next steps:
-
-Computer opponents
-Options gui
-Victory screen (play again option)
-Trees?
+More recently, I began working on a node-based version for a better multiplayer experience. It currently contains all of the features of the original, plus slightly better graphics. After launching the server file (app.js) with node, players can connect on port 3000 via their browser. This project is far from finished and should be approached as unstable at best.
