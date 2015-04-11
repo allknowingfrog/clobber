@@ -20,13 +20,24 @@ module.exports = {
         map.get = function() {
             var output = [];
             var cell, entity;
-            for(var x=0; x<map.cells.length; x++) {
+            for(var x=0; x<map.size; x++) {
                 output[x] = [];
-                for(var y=0; y<map.cells[x].length; y++) {
+                for(var y=0; y<map.size; y++) {
                     cell = map.cells[x][y];
-                    if(cell && cell.player) {
-                        if(cell.entity) entity = cell.entity.id;
-                        else entity = null;
+                    if(cell) {
+                        if(cell.entity) {
+                            entity = {id: cell.entity.id};
+                            switch(cell.entity.id) {
+                                case 'village':
+                                    entity.bank = cell.entity.bank
+                                    break;
+                                case 'troop':
+                                    entity.strength = cell.entity.strength;
+                                    break;
+                            }
+                        } else {
+                            entity = null;
+                        }
                         output[x][y] = {
                             entity: entity,
                             player: cell.player.id
@@ -36,7 +47,7 @@ module.exports = {
                     }
                 }
             }
-            console.log(JSON.stringify(output));
+            //console.log(JSON.stringify(output));
             return output;
         };
 
@@ -425,6 +436,7 @@ module.exports = {
         };
 
         // build 2D array
+        console.log('building map array');
         for(var x=0; x<map.size; x++) {
             map.cells[x] = [];
             for(var y=0; y<map.size; y++) {
@@ -438,6 +450,7 @@ module.exports = {
         }
 
         // assign cells to players
+        console.log('assigning cells to players');
         // x and y values to attempt to fill in map, starts in center
         var xTest = Math.floor(map.size/2);
         var yTest = Math.floor(map.size/2);
@@ -480,7 +493,20 @@ module.exports = {
             yTest = map.island[isIt].y;
         }
 
+        // remove unclaimed cells
+        console.log('removing unclaimed cells');
+        var cell;
+        for(var x=0; x<map.size; x++) {
+            for(var y=0; y<map.size; y++) {
+                cell = map.cells[x][y];
+                if(cell && !cell.player) {
+                    map.cells[x][y] = null;
+                }
+            }
+        }
+
         // assign cells to regions
+        console.log('assigning cells to regions');
         var test;
         for(var i=0; i<map.island.length; i++) {
             test = map.island[i];

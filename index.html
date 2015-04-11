@@ -54,7 +54,7 @@ tiles.tower.src = 'tower.svg';
 function init(data) {
     console.log('init');
     map = data.map;
-    console.log(JSON.stringify(data.map));
+    //console.log(JSON.stringify(data.map));
 
     canvas.main = document.getElementById("canvas");
     ctx.main = canvas.main.getContext("2d");
@@ -75,9 +75,25 @@ function init(data) {
         var y = ((-xClick/3) + (Math.sqrt(3)/3 * yClick))/(TILE_W/2);
         var coords = cube_round(x, y);
         console.log(coords.x + ", " + coords.y);
+        mapClick(coords.x, coords.y);
     }
 
     draw();
+}
+
+function mapClick(x, y) {
+    var offset = Math.floor(map.length/2);
+    x += offset;
+    y += offset;
+    if(map[x] && map[x][y]) {
+        if(map[x][y].entity && map[x][y].entity.id == 'village') {
+            console.log('village: '+map[x][y].entity.bank);
+        } else {
+            console.log('cell');
+        }
+    } else {
+        console.log('null');
+    }
 }
 
 function cube_round(x, y) {
@@ -134,7 +150,7 @@ function draw() {
                 yDraw = yStart + ((yRel + (xRel / 2)) * TILE_H);
                 tiles.draw(ctx.main, 'p'+cell.player, xDraw, yDraw);
                 if(cell.entity) {
-                    tiles.draw(ctx.main, cell.entity, xDraw, yDraw);
+                    tiles.draw(ctx.main, cell.entity.id, xDraw, yDraw);
                 }
             }
         }
