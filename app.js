@@ -83,6 +83,7 @@ io.sockets.on('connection', function(socket) {
         update();
     });
     socket.on('turn', function(data) {
+        newTurn();
         update();
     });
     socket.on('disconnect', function(data) {
@@ -100,4 +101,23 @@ function update() {
         turn: turn,
         activePlayer: activePlayer
     });
+}
+
+// move to next player, various updates, execute computer turns
+function newTurn() {
+	activePlayer++;
+	if(activePlayer >= PLAYER_COUNT) {
+		turn++;
+        activePlayer = 0;
+	}
+
+	var active = players[activePlayer];
+	active.update();
+	if(active.regions.length <= 0) {
+		active.alive = false;
+	}
+
+    if(!active.alive) {
+        newTurn();
+    }
 }

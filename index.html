@@ -7,14 +7,15 @@
 body {
     background: gray;
 }
-#canvas {
+canvas {
     background: black;
+    border: 1px solid white;
     float: left;
 }
-#sidebar {
-    background: white;
-    float: left;
+#canvas {
+    border-right: none;
 }
+
 </style>
 <script src="jquery-2.1.3.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
@@ -25,6 +26,8 @@ var canvas = {};
 var CANVAS_W;
 var CANVAS_H;
 var ctx = {};
+
+var FONTSIZE;
 
 var TILE_W;
 var TILE_H;
@@ -43,10 +46,14 @@ var tiles = {
     p2: new Image(),
     p3: new Image(),
     village:  new Image(),
-    troop: new Image(),
+    troop1: new Image(),
+    troop2: new Image(),
+    troop3: new Image(),
+    troop4: new Image(),
     tower: new Image(),
+    sidebar: new Image(),
     selected: new Image(),
-    draw: function(ctx, tile, x, y) { //accepts origin-relative pixel coords
+    draw: function(ctx, tile, x, y) { //accepts sprite-cented pixel coords
         ctx.drawImage(this[tile], x-(TILE_W/2), y-(TILE_H/2), TILE_W, TILE_H);
     }
 };
@@ -55,8 +62,12 @@ tiles.p1.src = 'brown.svg';
 tiles.p2.src = 'blue.svg';
 tiles.p3.src = 'red.svg';
 tiles.village.src = 'village.svg';
-tiles.troop.src = 'troop1.svg';
+tiles.troop1.src = 'troop1.svg';
+tiles.troop2.src = 'troop2.svg';
+tiles.troop3.src = 'troop3.svg';
+tiles.troop4.src = 'troop4.svg';
 tiles.tower.src = 'tower.svg';
+tiles.sidebar.src = 'sidebar.svg';
 tiles.selected.src = 'selected.svg';
 
 function init(data) {
@@ -75,8 +86,8 @@ function init(data) {
     //set various size params
     setCanvasWidth(localStorage.getItem("canvas-width"));
 
-    //ctx.sidebar.font = fontSize + "px Arial";
-    //ctx.sidebar.fillStyle = "white";
+    ctx.sidebar.font = FONTSIZE+"px Arial";
+    ctx.sidebar.fillStyle = "white";
 
     //handle mouse clicks
     canvas.main.onclick = function(e) {
@@ -93,6 +104,13 @@ function init(data) {
 
         //click handling
         mapClick(coords.x, coords.y);
+    }
+    canvas.sidebar.onclick = function(e) {
+        //find pixel location of click relative to canvas
+        var rect = canvas.sidebar.getBoundingClientRect();
+        var xClick = e.clientX - rect.left;
+        var yClick = e.clientY - rect.top;
+        sidebarClick(xClick, yClick);
     }
 
     draw();
@@ -117,6 +135,25 @@ function mapClick(x, y) {
         }
     } else {
         console.log('null');
+    }
+}
+
+function sidebarClick(x, y) {
+    if(clickedHex(TILE_W, TILE_H*1.5, x, y) && activePlayer == playerID) {
+        socket.emit('turn');
+    }
+}
+
+function clickedHex(x, y, xClick, yClick) {
+    xClick -= x;
+    yClick -= y;
+    var xCoord = xClick * (2/3) / (TILE_W/2);
+    var yCoord = ((-xClick/3) + (Math.sqrt(3)/3 * yClick))/(TILE_W/2);
+    var test = cube_round(xCoord, yCoord);
+    if(test.x == 0 && test.y == 0) {
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -151,6 +188,7 @@ function setCanvasWidth(width) {
     TILE_W = CANVAS_W / ((.75 * map.length) + 2);
     TILE_H = Math.sqrt(3)/2 * TILE_W;
     CANVAS_H = TILE_H * (map.length + 1);
+    FONTSIZE = Math.round(CANVAS_W / 25);
 
     canvas.main.width = CANVAS_W;
     canvas.main.height = CANVAS_H;
@@ -162,6 +200,7 @@ function setCanvasWidth(width) {
 
 function draw() {
     console.log('draw');
+    //draw map
     var cell, coords;
     ctx.main.clearRect(0, 0, CANVAS_W, CANVAS_H);
     for(var x=0; x<map.length; x++) {
@@ -176,9 +215,31 @@ function draw() {
             }
         }
     }
+
+    //draw sidebar
+    ctx.sidebar.clearRect(0, 0, TILE_W*4, CANVAS_H);
+    tiles.draw(ctx.sidebar, "p"+activePlayer, TILE_W, TILE_H*1.5);
+    ctx.sidebar.fillText("Turn: "+turn, TILE_W*2, TILE_H*1.5, TILE_W, TILE_H);
     if(selected) {
+        //draw selection highlight
         coords = index2pixel(selected.x, selected.y);
         tiles.draw(ctx.main, 'selected', coords.x, coords.y);
+
+        //draw village info
+        var cell = map[selected.x][selected.y];
+        if(cell && cell.entity && cell.entity.id == 'village') {
+            var bank = cell.entity.bank;
+            ctx.sidebar.fillText("Bank: "+bank, TILE_W/2, TILE_H*3);
+            // if bank is high enough, draw troop and tower icons
+            if(bank >= 10) {
+                tiles.draw(ctx.sidebar, 'sidebar', TILE_W, TILE_H*4);
+                tiles.draw(ctx.sidebar, 'troop1', TILE_W, TILE_H*4);
+                if (bank >= 15) {
+                    tiles.draw(ctx.sidebar, 'sidebar', TILE_W*2.5, TILE_H*4);
+                    tiles.draw(ctx.sidebar, 'tower', TILE_W*2.5, TILE_H*4);
+                }
+            }
+        }
     }
 }
 
