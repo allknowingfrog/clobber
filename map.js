@@ -7,6 +7,15 @@ module.exports = {
         map.selected = null;
         map.cells = [];
         map.cellCount = (map.size * map.size) - (2 * (((map.size-1)/2) * ((((map.size-1)/2)+1)/2)));
+        map.origin = Math.ceil(map.size/2);
+        map.adjacent = [
+            {x:  0, y: -1}, //N
+            {x:  1, y: -1}, //NE
+            {x:  1, y:  0}, //SE
+            {x:  0, y:  1}, //S
+            {x: -1, y:  1}, //SW
+            {x: -1, y:  0}  //SE
+        ];
 
         map.get = function() {
             var output = [];
@@ -40,7 +49,7 @@ module.exports = {
 
             // return a list of adjacent cells (including enemy cells, but not empty cells)
             this.findAdj = function() {
-                var adj = hex.adjacent;
+                var adj = map.adjacent;
                 var result = [];
                 var xTest, yTest;
                 for(var i=0; i<adj.length; i++) {
@@ -55,7 +64,7 @@ module.exports = {
 
             // return true if test is adjacent to this cell, otherwise false
             this.isAdj = function(test) {
-                var adj = hex.adjacent;
+                var adj = map.adjacent;
                 for(var i=0; i<adj.length; i++) {
                     if(this.x + adj[i].x == test.x && this.y + adj[i].y == test.y) {
                         return true;
@@ -416,12 +425,11 @@ module.exports = {
         };
 
         // build 2D array
-        var radius = Math.ceil(map.size/2);
         for(var x=0; x<map.size; x++) {
             map.cells[x] = [];
             for(var y=0; y<map.size; y++) {
                 // null out corners of array to leave hexagon-shaped map
-                if(x+y < radius || x+y >= (map.size*2)-radius) {
+                if(x+y < map.origin || x+y >= (map.size*2)-map.origin) {
                     map.cells[x][y] = null;
                 } else {
                     map.cells[x][y] = new map.cell(x, y);
@@ -445,7 +453,7 @@ module.exports = {
         var toFill = (map.cellCount * map.fill) - ((map.cellCount * map.fill) % (2 * players.length));
         while(toFill > 0) {
             // move in a random direction
-            direction = hex.adjacent[Math.floor((Math.random()*hex.adjacent.length))];
+            direction = map.adjacent[Math.floor((Math.random()*map.adjacent.length))];
             xTest += direction.x;
             yTest += direction.y;
             // if cell available: claim, add to island, decrease toFill and move to next player

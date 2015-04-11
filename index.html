@@ -38,7 +38,10 @@ var tiles = {
     p3: new Image(),
     village:  new Image(),
     troop: new Image(),
-    tower: new Image()
+    tower: new Image(),
+    draw: function(ctx, tile, x, y) {
+        ctx.drawImage(this[tile], x-(TILE_W/2), y-(TILE_H/2), TILE_W, TILE_H);
+    }
 };
 tiles.p0.src = 'green.svg';
 tiles.p1.src = 'brown.svg';
@@ -64,18 +67,39 @@ function init(data) {
     //ctx.sidebar.fillStyle = "white";
 
     canvas.main.onclick = function(e) {
-        // find pixel location of click relative to canvas
+        // find pixel location of click relative to origin
         var rect = canvas.main.getBoundingClientRect();
-        var xClick = e.clientX - rect.left;
-        var yClick = e.clientY - rect.top;
-        var xRel = xClick - (CANVAS_W/2) + (TILE_W/2);
-        var x = Math.floor(xRel/(.75*TILE_W));
-        var yRel = yClick - (CANVAS_H/2) + (TILE_H/2) - (x * (TILE_H/2));
-        var y = Math.floor((yRel/TILE_H));
-        console.log(x + ", " + y);
+        var xClick = e.clientX - rect.left - (CANVAS_W/2);
+        var yClick = e.clientY - rect.top - (CANVAS_H/2);
+        var x = xClick * (2/3) / (TILE_W/2);
+        var y = ((-xClick/3) + (Math.sqrt(3)/3 * yClick))/(TILE_W/2);
+        var coords = cube_round(x, y);
+        console.log(coords.x + ", " + coords.y);
     }
 
     draw();
+}
+
+function cube_round(x, y) {
+    var z = -x-y;
+
+    var rx = Math.round(x);
+    var ry = Math.round(y);
+    var rz = Math.round(z);
+
+    var dx = Math.abs(rx-x);
+    var dy = Math.abs(ry-y);
+    var dz = Math.abs(rz-z);
+
+    if(dx > dy && dx > dz) {
+        rx = -ry-rz;
+    } else if(dy > dz) {
+        ry = -rx-rz;
+    } else {
+        rz = -rx-ry;
+    }
+
+    return {x: rx, y: ry};
 }
 
 function setCanvasWidth(width) {
@@ -95,8 +119,8 @@ function setCanvasWidth(width) {
 
 function draw() {
     console.log('draw');
-    var xStart = (CANVAS_W / 2) - (TILE_W / 2);
-    var yStart = (CANVAS_H / 2) - (TILE_H / 2);
+    var xStart = (CANVAS_W / 2);
+    var yStart = (CANVAS_H / 2);
     var origin = Math.floor(map.length/2);
     var structure, tile, player, xRel, yRel, xDraw, yDraw;
     ctx.main.clearRect(0, 0, CANVAS_W, CANVAS_H);
@@ -104,25 +128,13 @@ function draw() {
         for(var y=0; y<map.length; y++) {
             cell = map[x][y];
             if(cell) {
-                tile = tiles['p' + cell.player];
                 xRel = x - origin;
                 yRel = y - origin;
                 xDraw = xStart + (xRel * (.75 * TILE_W));
                 yDraw = yStart + ((yRel + (xRel / 2)) * TILE_H);
-                ctx.main.drawImage(tile, xDraw, yDraw, TILE_W, TILE_H);
+                tiles.draw(ctx.main, 'p'+cell.player, xDraw, yDraw);
                 if(cell.entity) {
-                    switch(cell.entity) {
-                        case 'village':
-                            tile = tiles.village;
-                            break;
-                        case 'troop':
-                            tile = tiles.troop;
-                            break;
-                        case 'tower':
-                            tile = tiles.tower;
-                            break;
-                    }
-                    ctx.main.drawImage(tile, xDraw, yDraw, TILE_W, TILE_H);
+                    tiles.draw(ctx.main, cell.entity, xDraw, yDraw);
                 }
             }
         }
