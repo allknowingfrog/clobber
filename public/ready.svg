@@ -14,23 +14,9 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="selected.svg">
+   sodipodi:docname="ready.svg">
   <defs
-     id="defs4">
-    <marker
-       inkscape:stockid="Arrow1Lstart"
-       orient="auto"
-       refY="0.0"
-       refX="0.0"
-       id="Arrow1Lstart"
-       style="overflow:visible">
-      <path
-         id="path3838"
-         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
-         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt"
-         transform="scale(0.8) translate(12.5,0)" />
-    </marker>
-  </defs>
+     id="defs4" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -38,18 +24,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="-76.769508"
-     inkscape:cy="47.261803"
+     inkscape:zoom="2.8"
+     inkscape:cx="50.60205"
+     inkscape:cy="40.944574"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      showborder="true"
      inkscape:showpageshadow="false"
-     inkscape:window-width="1025"
+     inkscape:window-width="838"
      inkscape:window-height="683"
-     inkscape:window-x="152"
-     inkscape:window-y="119"
+     inkscape:window-x="195"
+     inkscape:window-y="189"
      inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
@@ -63,7 +49,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -74,7 +60,7 @@
      transform="translate(1.678283e-7,-952.36218)">
     <path
        sodipodi:type="star"
-       style="fill:none;stroke:#ffffff;stroke-opacity:1;stroke-width:2.81698129;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0.28169812999999999;marker-start:none;marker-mid:none"
+       style="fill:none;stroke:#ffffff;stroke-width:1.87798752000000002;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1.87798752000000002, 5.63396256999999956;stroke-dashoffset:7.51195009000000002"
        id="path3010"
        sodipodi:sides="6"
        sodipodi:cx="32.072342"
@@ -87,6 +73,6 @@
        inkscape:rounded="0"
        inkscape:randomized="0"
        d="m 45.625548,46.198174 -27.106415,-1e-6 L 4.9659271,22.723328 18.519136,-0.75151494 45.62555,-0.75151361 59.178757,22.723331 z"
-       transform="matrix(2.1299396,0,0,2.1299396,-10.577125,953.96286)" />
+       transform="matrix(1.9251377,0,0,1.9251377,-4.0086512,958.61664)" />
   </g>
 </svg>

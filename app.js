@@ -43,9 +43,10 @@ io.sockets.on('connection', function(socket) {
                 success: true,
                 player: socketPlayers[data].id,
                 login: data,
+                turn: turn,
                 map: map.get()
             });
-            console.log('login successful: '+data+" is player "+socketPlayers[data].id+" again");
+            console.log('login successful: '+data+" returns as player "+socketPlayers[data].id);
         } else if(turn > 0) {
             callback({
                 success: false,
@@ -60,13 +61,13 @@ io.sockets.on('connection', function(socket) {
                 success: true,
                 player: activePlayer,
                 login: data,
+                turn: turn,
                 map: map.get()
             });
             console.log('login successful: '+data+" is player "+activePlayer);
             activePlayer++;
             if(activePlayer >= PLAYER_COUNT) {
-                turn = 1;
-                activePlayer = 0;
+                newTurn();
                 update();
                 console.log('beginning game');
             }
@@ -79,7 +80,23 @@ io.sockets.on('connection', function(socket) {
         }
     });
     socket.on('move', function(data) {
-        socketPlayers[socket.nickname].move(data);
+        console.log(socket.nickname+' moves a troop');
+        var from = map.cells[data.from.x][data.from.y];
+        if(from.player == socketPlayers[socket.nickname]) {
+            from.moveTroop(map.cells[data.to.x][data.to.y]);
+        }
+        update();
+    });
+    socket.on('troop', function(data) {
+        console.log(socket.nickname+' buys a troop');
+        var target = map.cells[data.x][data.y];
+        if(target.player == socketPlayers[socket.nickname]) target.buyTroop();
+        update();
+    });
+    socket.on('tower', function(data) {
+        console.log(socket.nickname+' moves a tower');
+        var target = map.cells[data.x][data.y];
+        if(target.player == socketPlayers[socket.nickname]) target.buyTower();
         update();
     });
     socket.on('turn', function(data) {

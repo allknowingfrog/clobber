@@ -5,7 +5,6 @@ module.exports = {
         map.fill = fill;
         map.cellCount = 0;
         map.island = [];
-        map.selected = null;
         map.cells = [];
         map.cellCount = (map.size * map.size) - (2 * (((map.size-1)/2) * ((((map.size-1)/2)+1)/2)));
         map.origin = Math.ceil(map.size/2);
@@ -35,12 +34,15 @@ module.exports = {
                                     break;
                                 case 'troop':
                                     entity.strength = cell.entity.strength;
+                                    entity.ready = cell.entity.ready;
                                     break;
                             }
                         } else {
                             entity = null;
                         }
                         output[x][y] = {
+                            x: x,
+                            y: y,
                             entity: entity,
                             player: cell.player.id
                         };
@@ -49,7 +51,6 @@ module.exports = {
                     }
                 }
             }
-            //console.log(JSON.stringify(output));
             return output;
         };
 
@@ -123,7 +124,7 @@ module.exports = {
             // return true if move successful, otherwise false
             this.moveTroop = function(target) {
                 // if target isn't this cell and troop has not moved this turn...
-                if(target != this && this.entity.ready) {
+                if(target != this && this.entity && this.entity.ready) {
                     // ...and target is part of the same region...
                     if(target.region == this.region) {
                         // ...and target is empty, free move
@@ -131,34 +132,24 @@ module.exports = {
                             target.entity = this.entity;
                             target.entity.cell = target;
                             this.entity = null;
-                            map.selected = null;
                             return true;
                             // ...and target is also a troop, attempt to combine
                         } else if(target.entity.id == "troop" && target.entity.strength + this.entity.strength <= 4) {
                             target.entity.strength += this.entity.strength;
                             this.entity.alive = false;
                             this.entity = null;
-                            if(target.entity.ready) {
-                                map.selected = target;
-                            } else {
-                                map.selected = null;
-                            }
                             return true;
                         } else {
-                            map.selected = null;
                             return false;
                         }
                         // ...and target is adjacent to this region, and has a lower defense than this troop strength
                     } else if(this.region.adj(target) && target.defend() < this.entity.strength) {
                         this.attack(target);
-                        map.selected = null;
                         return true;
                     } else {
-                        map.selected = null;
                         return false;
                     }
                 } else {
-                    map.selected = null;
                     return false;
                 }
             };
@@ -238,7 +229,7 @@ module.exports = {
 
             // collect income from each cell in region
             this.tax = function() {
-                this.capital.entity.bank += this.cells.length;
+                this.capital.entity.bank += this.cells.length*2;
             };
 
             this.spend = function() {
@@ -513,7 +504,7 @@ module.exports = {
         for(var i=0; i<map.island.length; i++) {
             test = map.island[i];
             if(!test.region && !test.isolated(map)) {
-                test.player.regions.push(new map.region(test, 10));
+                test.player.regions.push(new map.region(test, 0));
                 test.region.addConnected();
             }
         }

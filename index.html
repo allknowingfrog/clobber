@@ -8,12 +8,15 @@ body {
     background: gray;
 }
 canvas {
-    background: black;
     border: 1px solid white;
     float: left;
 }
 #canvas {
+    background: #1C6BA0;
     border-right: none;
+}
+#sidebar {
+    background: black;
 }
 
 </style>
@@ -34,6 +37,7 @@ var TILE_H;
 
 var map;
 var selected;
+var buy;
 
 var playerID;
 
@@ -53,13 +57,14 @@ var tiles = {
     tower: new Image(),
     sidebar: new Image(),
     selected: new Image(),
+    ready: new Image(),
     draw: function(ctx, tile, x, y) { //accepts sprite-cented pixel coords
         ctx.drawImage(this[tile], x-(TILE_W/2), y-(TILE_H/2), TILE_W, TILE_H);
     }
 };
 tiles.p0.src = 'green.svg';
 tiles.p1.src = 'brown.svg';
-tiles.p2.src = 'blue.svg';
+tiles.p2.src = 'olive.svg';
 tiles.p3.src = 'red.svg';
 tiles.village.src = 'village.svg';
 tiles.troop1.src = 'troop1.svg';
@@ -69,13 +74,13 @@ tiles.troop4.src = 'troop4.svg';
 tiles.tower.src = 'tower.svg';
 tiles.sidebar.src = 'sidebar.svg';
 tiles.selected.src = 'selected.svg';
+tiles.ready.src = 'ready.svg';
 
 function init(data) {
-    console.log('init');
+    console.log('init: player '+playerID);
     playerID = data.player;
-    console.log('player '+playerID);
+    turn = data.turn;
     map = data.map;
-    //console.log(JSON.stringify(data.map));
 
     //get canvas elements from DOM and their drawing contexts
     canvas.main = document.getElementById("canvas");
@@ -100,7 +105,10 @@ function init(data) {
         var x = xClick * (2/3) / (TILE_W/2);
         var y = ((-xClick/3) + (Math.sqrt(3)/3 * yClick))/(TILE_W/2);
         var coords = cube_round(x, y);
-        console.log(coords.x + ", " + coords.y);
+        var indexOffset = Math.floor(map.length/2);
+        var x = coords.x+indexOffset;
+        var y = coords.y+indexOffset;
+        console.log(coords.x + ", " + coords.y + " ("+x+", "+y+")");
 
         //click handling
         mapClick(coords.x, coords.y);
@@ -122,25 +130,54 @@ function mapClick(x, y) {
     x += indexOffset;
     y += indexOffset;
 
-    //testing
     if(map[x] && map[x][y]) {
-        if(map[x][y].player == playerID) {
-            selected = {x: x, y: y};
-            draw();
-        }
-        if(map[x][y].entity && map[x][y].entity.id == 'village') {
-            console.log('village: '+map[x][y].entity.bank);
+        if(selected) {
+            //if player owns selected, try to execute a command
+            if(selected.player == playerID) {
+                //try to buy something
+                if(selected.entity && selected.entity.id == 'village') {
+                    socket.emit(buy, {
+                        x: x,
+                        y: y
+                    });
+                //else try to move something
+                } else {
+                    socket.emit('move', {
+                        from: {x: selected.x, y: selected.y},
+                        to: {x: x, y: y}
+                    });
+                }
+            }
+            //either way, deselect
+            selected = null;
+            buy = null;
         } else {
-            console.log('cell');
+            //if player owns target cell
+            if(map[x][y].player == playerID) {
+                selected = map[x][y];
+            //or cell is a village
+            } else if(map[x][y].entity && map[x][y].entity.id == 'village') {
+                selected = map[x][y];
+            }
         }
-    } else {
-        console.log('null');
+        draw();
     }
 }
 
 function sidebarClick(x, y) {
-    if(clickedHex(TILE_W, TILE_H*1.5, x, y) && activePlayer == playerID) {
-        socket.emit('turn');
+    buy = null;
+    if(activePlayer == playerID) {
+        if(clickedHex(TILE_W, TILE_H*1.5, x, y)) {
+            socket.emit('turn');
+        } else if(selected && selected.player == playerID) {
+            if(clickedHex(TILE_W, TILE_H*4, x, y)) {
+                buy = 'troop';
+                draw();
+            } else if(clickedHex(TILE_W*2.5, TILE_H*4, x, y)) {
+                buy = 'tower';
+                draw();
+            }
+        }
     }
 }
 
@@ -199,7 +236,7 @@ function setCanvasWidth(width) {
 }
 
 function draw() {
-    console.log('draw');
+    console.log('redrawing');
     //draw map
     var cell, coords;
     ctx.main.clearRect(0, 0, CANVAS_W, CANVAS_H);
@@ -210,7 +247,12 @@ function draw() {
                 coords = index2pixel(x, y);
                 tiles.draw(ctx.main, 'p'+cell.player, coords.x, coords.y);
                 if(cell.entity) {
-                    tiles.draw(ctx.main, cell.entity.id, coords.x, coords.y);
+                    if(cell.entity.id == 'troop') {
+                        tiles.draw(ctx.main, 'troop'+cell.entity.strength, coords.x, coords.y);
+                        if(cell.player == playerID && cell.entity.ready) tiles.draw(ctx.main, 'ready', coords.x, coords.y);
+                    } else {
+                        tiles.draw(ctx.main, cell.entity.id, coords.x, coords.y);
+                    }
                 }
             }
         }
@@ -226,17 +268,18 @@ function draw() {
         tiles.draw(ctx.main, 'selected', coords.x, coords.y);
 
         //draw village info
-        var cell = map[selected.x][selected.y];
-        if(cell && cell.entity && cell.entity.id == 'village') {
-            var bank = cell.entity.bank;
+        if(selected.entity && selected.entity.id == 'village') {
+            var bank = selected.entity.bank;
             ctx.sidebar.fillText("Bank: "+bank, TILE_W/2, TILE_H*3);
             // if bank is high enough, draw troop and tower icons
             if(bank >= 10) {
                 tiles.draw(ctx.sidebar, 'sidebar', TILE_W, TILE_H*4);
                 tiles.draw(ctx.sidebar, 'troop1', TILE_W, TILE_H*4);
+                if(buy == 'troop') tiles.draw(ctx.sidebar, 'selected', TILE_W, TILE_H*4);
                 if (bank >= 15) {
                     tiles.draw(ctx.sidebar, 'sidebar', TILE_W*2.5, TILE_H*4);
                     tiles.draw(ctx.sidebar, 'tower', TILE_W*2.5, TILE_H*4);
+                    if(buy == 'tower') tiles.draw(ctx.sidebar, 'selected', TILE_W*2.5, TILE_H*4);
                 }
             }
         }
@@ -277,7 +320,6 @@ $(document).ready(function() {
         turn = data.turn;
         activePlayer = data.activePlayer;
         draw();
-        if(playerID == activePlayer) console.log('my turn');
     });
 });
 </script>
