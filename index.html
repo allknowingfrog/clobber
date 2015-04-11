@@ -30,6 +30,9 @@ var TILE_W;
 var TILE_H;
 
 var map;
+var selected;
+
+var playerID;
 
 var tiles = {
     p0: new Image(),
@@ -39,7 +42,8 @@ var tiles = {
     village:  new Image(),
     troop: new Image(),
     tower: new Image(),
-    draw: function(ctx, tile, x, y) {
+    selected: new Image(),
+    draw: function(ctx, tile, x, y) { //accepts origin-relative pixel coords
         ctx.drawImage(this[tile], x-(TILE_W/2), y-(TILE_H/2), TILE_W, TILE_H);
     }
 };
@@ -50,31 +54,41 @@ tiles.p3.src = 'red.svg';
 tiles.village.src = 'village.svg';
 tiles.troop.src = 'troop1.svg';
 tiles.tower.src = 'tower.svg';
+tiles.selected.src = 'selected.svg';
 
 function init(data) {
     console.log('init');
+    playerID = data.player;
+    console.log('player '+playerID);
     map = data.map;
     //console.log(JSON.stringify(data.map));
 
+    //get canvas elements from DOM and their drawing contexts
     canvas.main = document.getElementById("canvas");
     ctx.main = canvas.main.getContext("2d");
     canvas.sidebar = document.getElementById("sidebar");
     ctx.sidebar = canvas.sidebar.getContext("2d");
 
+    //set various size params
     setCanvasWidth(localStorage.getItem("canvas-width"));
 
     //ctx.sidebar.font = fontSize + "px Arial";
     //ctx.sidebar.fillStyle = "white";
 
+    //handle mouse clicks
     canvas.main.onclick = function(e) {
-        // find pixel location of click relative to origin
+        //find pixel location of click relative to origin
         var rect = canvas.main.getBoundingClientRect();
         var xClick = e.clientX - rect.left - (CANVAS_W/2);
         var yClick = e.clientY - rect.top - (CANVAS_H/2);
+
+        //find index of click relative to origin
         var x = xClick * (2/3) / (TILE_W/2);
         var y = ((-xClick/3) + (Math.sqrt(3)/3 * yClick))/(TILE_W/2);
         var coords = cube_round(x, y);
         console.log(coords.x + ", " + coords.y);
+
+        //click handling
         mapClick(coords.x, coords.y);
     }
 
@@ -82,10 +96,17 @@ function init(data) {
 }
 
 function mapClick(x, y) {
-    var offset = Math.floor(map.length/2);
-    x += offset;
-    y += offset;
+    //find 0 index
+    var indexOffset = Math.floor(map.length/2);
+    x += indexOffset;
+    y += indexOffset;
+
+    //testing
     if(map[x] && map[x][y]) {
+        if(map[x][y].player == playerID) {
+            selected = {x: x, y: y};
+            draw();
+        }
         if(map[x][y].entity && map[x][y].entity.id == 'village') {
             console.log('village: '+map[x][y].entity.bank);
         } else {
@@ -96,6 +117,7 @@ function mapClick(x, y) {
     }
 }
 
+//borrowed from redblobgames.com, rounds cube-based hex coords
 function cube_round(x, y) {
     var z = -x-y;
 
@@ -118,6 +140,7 @@ function cube_round(x, y) {
     return {x: rx, y: ry};
 }
 
+//can be called from console to change view size
 function setCanvasWidth(width) {
     CANVAS_W = width || 600;
     localStorage.setItem('canvas-width', width);
@@ -135,26 +158,37 @@ function setCanvasWidth(width) {
 
 function draw() {
     console.log('draw');
-    var xStart = (CANVAS_W / 2);
-    var yStart = (CANVAS_H / 2);
-    var origin = Math.floor(map.length/2);
-    var structure, tile, player, xRel, yRel, xDraw, yDraw;
+    var cell, coords;
     ctx.main.clearRect(0, 0, CANVAS_W, CANVAS_H);
     for(var x=0; x<map.length; x++) {
         for(var y=0; y<map.length; y++) {
             cell = map[x][y];
             if(cell) {
-                xRel = x - origin;
-                yRel = y - origin;
-                xDraw = xStart + (xRel * (.75 * TILE_W));
-                yDraw = yStart + ((yRel + (xRel / 2)) * TILE_H);
-                tiles.draw(ctx.main, 'p'+cell.player, xDraw, yDraw);
+                coords = index2pixel(x, y);
+                tiles.draw(ctx.main, 'p'+cell.player, coords.x, coords.y);
                 if(cell.entity) {
-                    tiles.draw(ctx.main, cell.entity.id, xDraw, yDraw);
+                    tiles.draw(ctx.main, cell.entity.id, coords.x, coords.y);
                 }
             }
         }
     }
+    if(selected) {
+        coords = index2pixel(selected.x, selected.y);
+        tiles.draw(ctx.main, 'selected', coords.x, coords.y);
+    }
+}
+
+function index2pixel(x, y) {
+    //map array index relative to origin
+    var indexOffset = Math.floor(map.length/2);
+    x -= indexOffset;
+    y -= indexOffset;
+
+    //pixel location relative to origin
+    return {
+        x: (CANVAS_W / 2) + (x * (.75 * TILE_W)),
+        y: (CANVAS_H / 2) + ((y + (x / 2)) * TILE_H)
+    };
 }
 
 $(document).ready(function() {
@@ -162,13 +196,13 @@ $(document).ready(function() {
     $('#login').submit(function(e) {
         e.preventDefault();
         socket.emit('login', $('#nickname').val(), function(data) {
-            if(data) {
+            if(data.success) {
                 localStorage.setItem('login', data.login);
                 $('#loginDiv').hide();
                 $('#gameDiv').show();
                 init(data);
             } else {
-                $('#output').html('That username is already taken! Try again.');
+                $('#output').html(data.msg);
             }
         });
         $('#nickname').val('');

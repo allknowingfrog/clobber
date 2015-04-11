@@ -6,22 +6,17 @@ var fs = require('fs');
 
 var player = require('./player.js');
 
-//globals
-sockets = {};
-socketPlayers = {};
-nextPlayer = 0;
-nextRegion = 0;
+var sockets = {};
+var socketPlayers = {};
+var nextPlayer = 0;
+var PLAYER_COUNT = 4;
 
-PLAYER_COUNT = 4;
-players = [];
+var players = [];
 for(var p=0; p<PLAYER_COUNT; p++) {
     players[p] = new player(p);
 }
 
-adjacent = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}, {x: 1, y: 1}, {x: -1, y: -1}];
-
-map = {};
-require('./map.js').create(map, 11, .6, players);
+var map = require('./map.js').create(11, .6, players);
 
 server.listen(3000);
 
@@ -35,20 +30,44 @@ io.sockets.on('connection', function(socket) {
     socket.on('login', function(data, callback) {
         console.log('login attempt');
         if(data in sockets) {
-            callback(false);
-            console.log('login failed');
-        } else if(data) {
-            socket.nickname = data;
-            sockets[socket.nickname] = socket;
-            socketPlayers[socket.nickname] = players[nextPlayer];
-            nextPlayer++;
             callback({
+                success: false,
+                msg: "Name is already taken"
+            });
+            console.log('login failed');
+        } else if(data in socketPlayers) {
+            socket.nickname = data;
+            sockets[data] = socket;
+            callback({
+                success: true,
+                player: socketPlayers[data].id,
                 login: data,
                 map: map.get()
             });
-            console.log('login successful: '+data);
+            console.log('login successful: '+data+" is player "+socketPlayers[data].id+" again");
+        } else if(nextPlayer >= PLAYER_COUNT) {
+            callback({
+                success: false,
+                msg: "Game is full"
+            });
+            console.log('login failed');
+        } else if(data) {
+            socket.nickname = data;
+            sockets[data] = socket;
+            socketPlayers[data] = players[nextPlayer];
+            callback({
+                success: true,
+                player: nextPlayer,
+                login: data,
+                map: map.get()
+            });
+            console.log('login successful: '+data+" is player "+nextPlayer);
+            nextPlayer++;
         } else {
-            callback(false);
+            callback({
+                success: false,
+                msg: "Invalid login"
+            });
             console.log('login failed');
         }
     });
@@ -62,7 +81,6 @@ io.sockets.on('connection', function(socket) {
     socket.on('disconnect', function(data) {
         if(socket.nickname) {
             delete sockets[socket.nickname];
-            socketPlayers[socket.nickname] = null;
         } else {
             return;
         }

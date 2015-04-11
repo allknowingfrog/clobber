@@ -1,5 +1,6 @@
 module.exports = {
-    create: function(map, size, fill, players) {
+    create: function(size, fill, players) {
+        var map = {};
         map.size = size;
         map.fill = fill;
         map.cellCount = 0;
@@ -8,6 +9,7 @@ module.exports = {
         map.cells = [];
         map.cellCount = (map.size * map.size) - (2 * (((map.size-1)/2) * ((((map.size-1)/2)+1)/2)));
         map.origin = Math.ceil(map.size/2);
+        map.nextRegion = 0;
         map.adjacent = [
             {x:  0, y: -1}, //N
             {x:  1, y: -1}, //NE
@@ -208,9 +210,9 @@ module.exports = {
             };
         };
 
-        map.region = function(num, cell, bank) {
+        map.region = function(cell, bank) {
             this.id = "region";
-            this.num = num;
+            this.num = map.nextRegion++;
             this.alive = true;
             this.player = cell.player;
             this.capital = cell;
@@ -358,7 +360,7 @@ module.exports = {
                             master.entity = null;
                         }
                     } else if(!master.region) {
-                        master.player.regions.push(new map.region(nextRegion++, master, 0));
+                        master.player.regions.push(new map.region(master, 0));
                         master.region.addConnected();
                     }
                 }
@@ -511,9 +513,11 @@ module.exports = {
         for(var i=0; i<map.island.length; i++) {
             test = map.island[i];
             if(!test.region && !test.isolated(map)) {
-                test.player.regions.push(new map.region(nextRegion++, test, 10));
+                test.player.regions.push(new map.region(test, 10));
                 test.region.addConnected();
             }
         }
+
+        return map;
     }
 };
