@@ -92,11 +92,29 @@ module.exports = {
             };
 
             //if adjacent to at least one friendly cell, return false, otherwise true
-            this.isolated = function() {
+            this.isolated = function(player) {
+                if(typeOf(player) != 'object') player = this.player;
                 var neighbors = this.findAdj();
                 for(var i=0; i<neighbors.length; i++) {
-                    if(neighbors[i].player == this.player) {
+                    if(neighbors[i].player == player) {
                         return false;
+                    }
+                }
+                return true;
+            };
+
+            //if cell is adjacent to two or more friendly regions, return false, otherwise true
+            this.regionSeparation = function(player) {
+                if(typeOf(player) != 'object') player = this.player;
+                var neighbors = this.findAdj();
+                var region;
+                for(var i=0; i<neighbors.length; i++) {
+                    if(neighbors[i].player == player) {
+                        if(neighbors[i].region == region) {
+                            return false;
+                        } else {
+                            region = neighbors[i].region;
+                        }
                     }
                 }
                 return true;
@@ -434,50 +452,99 @@ module.exports = {
 
         map.build = function(JSON) {
             console.log('building map');
+            var unfilled = [];
             var x, y;
             for(var m in JSON) {
                 x = JSON[m].x;
                 y = JSON[m].y;
                 map.cells[x][y] = new map.cell(x, y);
+                unfilled.push(map.cells[x][y]);
             }
 
-            //assign cells to players
+            console.log('generating fill path');
+            var fillPath = [map.cells[x][y]];
+            var stack = fillPath.slice();
+            var pop, neighbors, cell;
+            while(fillPath.length < unfilled.length) {
+                pop = stack.pop();
+                neighbors = pop.findAdj();
+                for(n in neighbors) {
+                    cell = neighbors[n];
+                    if(fillPath.indexOf(cell) == -1) {
+                        fillPath.push(cell);
+                        stack.push(cell);
+                    }
+                }
+            }
+
+            var villageCount = Math.floor(unfilled.length / (players.length * 4));
+            var villages = [];
+            for(var i; i<villageCount; i++) {
+                for(var p; p<players.length; p++) {
+                    villages.push(p);
+                }
+            }
+
+            var orphanCount = (unfilled.length - (villageCount * 2 * players.length)) / players.length;
+            var orphans = [];
+            for(var i; i<orphanCount; i++) {
+                for(var p; p<players.length; p++) {
+                    orphans.push(p);
+                }
+            }
+
+            //place villages
             console.log('assigning cells to players');
-            var unfilled = [];
-            var filled = [];
-
-            var nextPlayer = false;
-            var direction;
-
-            //number of cells to fill
-            var toFill = (map.cellCount * map.fill) - ((map.cellCount * map.fill) % (2 * players.length));
-            while(toFill > 0) {
-                //move in a random direction
-                direction = map.adjacent[Math.floor((Math.random()*map.adjacent.length))];
-                xTest += direction.x;
-                yTest += direction.y;
-                //if cell available: claim, add to island, decrease toFill and move to next player
-                if(map.cells[xTest] && map.cells[xTest][yTest] && !map.cells[xTest][yTest].player) {
-                    map.cells[xTest][yTest].player = players[pIt];
-                    map.island.push(map.cells[xTest][yTest]);
-                    toFill--;
-                    if(nextPlayer) {
-                        pIt++;
-                        nextPlayer = false;
-                    } else {
-                        nextPlayer = true;
+            var cell, neighbors, neighbor, player, skip;
+            while(villages.length) {
+                player = players[villages.pop()];
+                cell = fillPath.pop();
+                if(cell.player) {
+                    continue;
+                } else if(cell.isolated(player)) {
+                    neighbors = cell.findAdj();
+                    skip = true;
+                    for(var n in neighbors) {
+                        neighbor = neighbors[n];
+                        if(!neighbor.player && neighbor.isolated(player)) {
+                            cell.player = player;
+                            neighbor.player = player;
+                            player.regions.push(new map.region(cell, 0));
+                            cell.region.addConnected();
+                            skip = false;
+                            break;
+                        }
                     }
-                    if(pIt >= players.length) {
-                        pIt = 0;
+                    if(skip) fillPath.unshift(cell);
+                } else {
+                    fillPath.unshift(cell);
+                }
+            }
+
+            var cell, neighbors, neighbor, player, skip;
+            while(villages.length) {
+                player = players[villages.pop()];
+                cell = fillPath.pop();
+                if(cell.player) {
+                    continue;
+                } else if(cell.isolated(player)) {
+                    neighbors = cell.findAdj();
+                    skip = true;
+                    for(var n in neighbors) {
+                        neighbor = neighbors[n];
+                        if(!neighbor.player && neighbor.isolated(player)) {
+                            cell.player = player;
+                            neighbor.player = player;
+                            player.regions.push(new map.region(cell, 0));
+                            cell.region.addConnected();
+                            skip = false;
+                            break;
+                        }
                     }
+                    if(skip) fillPath.unshift(cell);
+                } else {
+                    fillPath.unshift(cell);
                 }
-                //move to newly claimed cell, or to beginning of list
-                isIt++;
-                if(isIt >= map.island.length) {
-                    isIt = 0;
-                }
-                xTest = map.island[isIt].x;
-                yTest = map.island[isIt].y;
             }
 
             //remove unclaimed cells
@@ -489,17 +556,6 @@ module.exports = {
                     if(cell && !cell.player) {
                         map.cells[x][y] = null;
                     }
-                }
-            }
-
-            //assign cells to regions
-            console.log('assigning cells to regions');
-            var test;
-            for(var i=0; i<map.island.length; i++) {
-                test = map.island[i];
-                if(!test.region && !test.isolated(map)) {
-                    test.player.regions.push(new map.region(test, 0));
-                    test.region.addConnected();
                 }
             }
 
